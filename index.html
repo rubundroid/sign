@@ -11,7 +11,8 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
-  <script src="tailwind.js"></script>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+
   <script id="tailwind-config">
     tailwind.config = {
       darkMode: "class",
@@ -46,6 +47,8 @@
             "error":                     "#ba1a1a",
             "error-container":           "#ffdad6",
             "surface-dim":               "#d8dadc",
+            "secondary":                 "#475e8c",
+            "tertiary":                  "#9e4300",
           },
           fontFamily: {
             headline: ["Manrope"],
@@ -56,6 +59,8 @@
             DEFAULT: "0.25rem",
             lg:      "0.5rem",
             xl:      "0.75rem",
+            "2xl":   "1rem",
+            "3xl":   "1.5rem",
             full:    "9999px",
           },
           boxShadow: {
@@ -69,213 +74,414 @@
   </script>
 
   <style>
-    /* ── Base ─────────────────────────────────────────────── */
+    /* ── Base ──────────────────────────────────────────────── */
+    * { box-sizing: border-box; }
     .material-symbols-outlined {
       font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
     }
     body { font-family: 'Inter', sans-serif; color: #191c1e; }
     h1,h2,h3,h4 { font-family: 'Manrope', sans-serif; }
 
-    /* ── Glassmorphism ────────────────────────────────────── */
+    /* ── Glassmorphism ─────────────────────────────────────── */
     .glass-panel {
-      background: rgba(255,255,255,0.85);
+      background: rgba(255,255,255,0.88);
       backdrop-filter: blur(24px);
       -webkit-backdrop-filter: blur(24px);
     }
     .glass-toolbar {
-      background: rgba(255,255,255,0.80);
+      background: rgba(255,255,255,0.82);
       backdrop-filter: blur(24px);
       -webkit-backdrop-filter: blur(24px);
     }
 
-    /* ── Ink gradient button ──────────────────────────────── */
+    /* ── Ink gradient button ─────────────────────────────── */
     .bg-gradient-ink { background: linear-gradient(180deg,#005bbf 0%,#1a73e8 100%); }
 
     /* ── PIN dots ─────────────────────────────────────────── */
     .pin-dot { width:16px; height:16px; border-radius:50%; transition:all .2s ease; }
 
-    /* ── SPA tab panels ───────────────────────────────────── */
-    .tab-panel { display:none; }
-    .tab-panel.active { display:flex; flex-direction:column; flex:1; overflow:hidden; }
-
-    /* ── Top-nav tab link styles ──────────────────────────── */
-    .nav-tab {
-      font-family:'Manrope',sans-serif; font-size:.875rem; font-weight:600;
-      color:#414754; padding-bottom:4px; cursor:pointer;
-      border-bottom:2px solid transparent; transition:color .2s,border-color .2s;
+    /* ══════════════════════════════════════════════════════════
+       SPA TAB PANELS
+       ─────────────────────────────────────────────────────────
+       FIX #1 & #4:
+       - All panels start hidden (display:none).
+       - .active panels become flex columns.
+       - #tab-dashboard.active specifically uses overflow:hidden
+         so its sidebar + main sit side-by-side in a row; the
+         <main> inside handles its own overflow-y:auto scrolling.
+       - #tab-archive.active scrolls the whole column.
+    ══════════════════════════════════════════════════════════ */
+    .tab-panel { display: none; }
+    .tab-panel.active {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
     }
-    .nav-tab:hover { color:#1a73e8; }
-    .nav-tab.active { color:#005bbf; border-bottom-color:#005bbf; }
+    /* Dashboard is a flex ROW (sidebar + main), clipped at viewport */
+    #tab-dashboard.active {
+      flex-direction: row;
+      overflow: hidden;
+    }
+    /* Archive scrolls the whole panel */
+    #tab-archive.active {
+      overflow-y: auto;
+    }
+
+    /* ── Top-nav tab link styles ───────────────────────────── */
+    .nav-tab {
+      font-family: 'Manrope', sans-serif;
+      font-size: .875rem;
+      font-weight: 600;
+      color: #414754;
+      padding-bottom: 4px;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      border-top: none;
+      border-left: none;
+      border-right: none;
+      background: none;
+      transition: color .2s, border-color .2s;
+    }
+    .nav-tab:hover  { color: #1a73e8; }
+    .nav-tab.active { color: #005bbf; border-bottom-color: #005bbf; }
 
     /* ── Fabric canvas wrapper ────────────────────────────── */
     #pdf-wrapper {
-      position:relative; display:inline-block;
-      box-shadow:0 20px 60px rgba(0,0,0,.12); border-radius:8px;
-      overflow:visible; background:#fff;
+      position: relative;
+      display: inline-block;
+      box-shadow: 0 20px 60px rgba(0,0,0,.12);
+      border-radius: 8px;
+      overflow: visible;
+      background: #fff;
     }
-    #pdf-render-canvas { display:block; border-radius:8px; }
+    #pdf-render-canvas { display: block; border-radius: 8px; }
 
-    /* mix-blend-mode: multiply — white JPEG areas vanish, matching
-       BlendMode.Multiply applied in pdf-lib on download */
+    /* mix-blend-mode: multiply so white Fabric pixels are transparent on export */
     .canvas-container {
-      position:absolute !important; top:0 !important; left:0 !important;
-      mix-blend-mode:multiply;
+      position: absolute !important;
+      top: 0 !important;
+      left: 0 !important;
+      mix-blend-mode: multiply;
     }
 
     /* ── PDF placeholder ──────────────────────────────────── */
     #pdf-placeholder {
-      width:560px; aspect-ratio:1/1.41; background:#fff; border-radius:12px;
-      display:flex; flex-direction:column; align-items:center;
-      justify-content:center; color:#c1c6d6;
-      box-shadow:0 12px 40px rgba(25,28,30,0.06);
+      width: 560px;
+      aspect-ratio: 1/1.41;
+      background: #fff;
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: #c1c6d6;
+      box-shadow: 0 12px 40px rgba(25,28,30,0.06);
     }
 
-    /* ── Page info pill ───────────────────────────────────── */
+    /* ── Page info pill ────────────────────────────────────── */
     #page-info {
-      position:absolute; bottom:12px; left:50%; transform:translateX(-50%);
-      background:rgba(0,0,0,.55); color:#fff;
-      font-size:11px; font-family:'Inter',sans-serif; font-weight:600;
-      padding:4px 12px; border-radius:20px; display:none;
-      pointer-events:none; white-space:nowrap; letter-spacing:.05em;
+      position: absolute;
+      bottom: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,.55);
+      color: #fff;
+      font-size: 11px;
+      font-family: 'Inter', sans-serif;
+      font-weight: 600;
+      padding: 4px 12px;
+      border-radius: 20px;
+      display: none;
+      pointer-events: none;
+      white-space: nowrap;
+      letter-spacing: .05em;
     }
 
-    /* ── Colour swatches ──────────────────────────────────── */
-    .color-btn { transition:box-shadow .15s,transform .12s; cursor:pointer; }
+    /* ── Colour swatches ───────────────────────────────────── */
+    .color-btn { transition: box-shadow .15s, transform .12s; cursor: pointer; }
     .color-btn.active {
-      box-shadow:0 0 0 2px #fff, 0 0 0 4px var(--ring-color,#005bbf);
-      transform:scale(1.18);
+      box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--ring-color, #005bbf);
+      transform: scale(1.18);
     }
 
-    /* ── Crosshair when drawing ───────────────────────────── */
-    .drawing-active .upper-canvas { cursor:crosshair !important; }
+    /* ── Crosshair when drawing ────────────────────────────── */
+    .drawing-active .upper-canvas { cursor: crosshair !important; }
 
-    /* ── Sig buttons ─────────────────────────────────────── */
+    /* ── Sig buttons ────────────────────────────────────────── */
+    .sig-btn {
+      background: rgba(255,255,255,0.6);
+      transition: background .18s, box-shadow .18s;
+    }
     .sig-btn:hover {
-      background:#fff;
-      box-shadow:0 4px 12px rgba(0,91,191,.10);
+      background: #fff;
+      box-shadow: 0 4px 12px rgba(0,91,191,.10);
     }
 
-    /* ── Upload area ─────────────────────────────────────── */
-    #upload-area:hover { border-color:#005bbf; }
-    #upload-area:hover .upload-icon { color:#005bbf; }
+    /* ── Upload area hover ─────────────────────────────────── */
+    #upload-area:hover { border-color: #005bbf; }
+    #upload-area:hover .upload-icon { color: #005bbf; }
 
-    /* ═══ DOCUMENT ORGANIZER ════════════════════════════════ */
-    #organizer-screen { display:none; }
+    /* ══════════════════════════════════════════════════════════
+       DOCUMENT ORGANIZER
+       #organizer-screen starts hidden; script.js sets
+       .style.display = 'block' in showOrganizerScreen() and
+       .style.display = 'none' in showSigningScreen().
+       The CSS here must NOT conflict with those JS assignments.
+    ══════════════════════════════════════════════════════════ */
+    #organizer-screen { display: none; }
 
     #thumb-grid {
-      display:grid;
-      grid-template-columns:repeat(auto-fill,minmax(130px,1fr));
-      gap:16px; padding:8px 2px;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+      gap: 16px;
+      padding: 8px 2px;
     }
     .thumb-card {
-      position:relative; background:#fff;
-      border-radius:12px; overflow:visible;
-      cursor:grab; user-select:none;
-      box-shadow:0 4px 12px rgba(25,28,30,0.04);
-      transition:box-shadow .18s,transform .15s;
-      outline:2px solid transparent;
-      outline-offset:2px;
+      position: relative;
+      background: #fff;
+      border-radius: 12px;
+      overflow: visible;
+      cursor: grab;
+      user-select: none;
+      box-shadow: 0 4px 12px rgba(25,28,30,0.04);
+      transition: box-shadow .18s, transform .15s;
+      outline: 2px solid transparent;
+      outline-offset: 2px;
     }
     .thumb-card:hover {
-      box-shadow:0 8px 24px rgba(0,91,191,.12);
-      outline-color:rgba(0,91,191,.25);
+      box-shadow: 0 8px 24px rgba(0,91,191,.12);
+      outline-color: rgba(0,91,191,.25);
     }
     .thumb-card.drag-over {
-      outline-color:#005bbf;
-      box-shadow:0 0 0 3px rgba(0,91,191,.2);
-      transform:scale(1.03);
+      outline-color: #005bbf;
+      box-shadow: 0 0 0 3px rgba(0,91,191,.2);
+      transform: scale(1.03);
     }
-    .thumb-card.dragging { opacity:.35; cursor:grabbing; }
+    .thumb-card.dragging { opacity: .35; cursor: grabbing; }
     .thumb-card canvas {
-      display:block; width:100%; height:auto;
-      border-radius:10px 10px 0 0; pointer-events:none;
+      display: block;
+      width: 100%;
+      height: auto;
+      border-radius: 10px 10px 0 0;
+      pointer-events: none;
     }
     .thumb-card .thumb-footer {
-      padding:5px 8px 7px;
-      font-size:10px; font-family:'Inter',sans-serif; font-weight:600;
-      color:#414754; display:flex; align-items:center;
-      justify-content:space-between;
-      border-top:1px solid rgba(193,198,214,.3);
+      padding: 5px 8px 7px;
+      font-size: 10px;
+      font-family: 'Inter', sans-serif;
+      font-weight: 600;
+      color: #414754;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-top: 1px solid rgba(193,198,214,.3);
     }
     .thumb-card .thumb-del {
-      background:none; border:none; cursor:pointer; color:#b91c1c;
-      padding:2px; border-radius:4px; line-height:1;
-      transition:background .14s; display:flex; align-items:center;
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: #b91c1c;
+      padding: 2px;
+      border-radius: 4px;
+      line-height: 1;
+      transition: background .14s;
+      display: flex;
+      align-items: center;
     }
-    .thumb-card .thumb-del:hover { background:#fee2e2; }
+    .thumb-card .thumb-del:hover { background: #fee2e2; }
     .thumb-card .drag-handle {
-      position:absolute; top:5px; right:5px;
-      display:grid; grid-template-columns:1fr 1fr; gap:2px;
-      opacity:0; transition:opacity .15s; pointer-events:none;
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2px;
+      opacity: 0;
+      transition: opacity .15s;
+      pointer-events: none;
     }
-    .thumb-card:hover .drag-handle { opacity:1; }
+    .thumb-card:hover .drag-handle { opacity: 1; }
     .thumb-card .drag-handle span {
-      width:4px; height:4px; border-radius:50%;
-      background:rgba(0,91,191,.55);
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: rgba(0,91,191,.55);
     }
 
-    /* ═══ GLOBAL LOADING OVERLAY ════════════════════════════ */
+    /* ══ GLOBAL LOADING OVERLAY ══════════════════════════════ */
     #loading-overlay {
-      position:fixed; inset:0; z-index:9999;
-      background:rgba(15,23,42,.55);
-      backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px);
-      display:none; flex-direction:column;
-      align-items:center; justify-content:center;
-      gap:18px; font-family:'Inter',sans-serif;
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      background: rgba(15,23,42,.55);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 18px;
+      font-family: 'Inter', sans-serif;
     }
-    #loading-overlay.active { display:flex; }
+    #loading-overlay.active { display: flex; }
     #loading-overlay .lo-spinner {
-      width:52px; height:52px; border-radius:50%;
-      border:5px solid rgba(255,255,255,.20);
-      border-top-color:#fff;
-      animation:lo-spin .75s linear infinite;
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      border: 5px solid rgba(255,255,255,.20);
+      border-top-color: #fff;
+      animation: lo-spin .75s linear infinite;
     }
     #loading-overlay .lo-text {
-      color:#fff; font-size:13px; font-weight:700;
-      letter-spacing:.04em; opacity:.92;
+      color: #fff;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: .04em;
+      opacity: .92;
     }
-    @keyframes lo-spin { to { transform:rotate(360deg); } }
+    @keyframes lo-spin { to { transform: rotate(360deg); } }
 
-    /* ═══ STAMP HINT BANNER ══════════════════════════════════ */
+    /* ══ STAMP HINT BANNER ═══════════════════════════════════ */
     #stamp-hint {
-      display:none; align-items:center; gap:8px;
-      padding:7px 14px; background:#005bbf; color:#fff;
-      font-family:'Inter',sans-serif; font-size:11px; font-weight:700;
-      border-radius:10px; box-shadow:0 4px 14px rgba(0,91,191,.30);
-      user-select:none; letter-spacing:.02em;
+      display: none;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 14px;
+      background: #005bbf;
+      color: #fff;
+      font-family: 'Inter', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      border-radius: 10px;
+      box-shadow: 0 4px 14px rgba(0,91,191,.30);
+      user-select: none;
+      letter-spacing: .02em;
     }
 
-    /* ═══ ARCHIVE & TEMPLATES CONTENT AREA ══════════════════ */
-    #tab-archive, #tab-templates { overflow-y:auto; }
+    /* ══ ARCHIVE DOCUMENT ROWS ═══════════════════════════════ */
+    .doc-row {
+      display: flex;
+      align-items: center;
+      padding: 18px 20px;
+      background: #ffffff;
+      border-radius: 16px;
+      box-shadow: 0 4px 12px rgba(25,28,30,0.03);
+      transition: box-shadow .2s;
+      border: 1px solid rgba(255,255,255,0.6);
+    }
+    .doc-row:hover { box-shadow: 0 8px 24px rgba(25,28,30,0.06); }
 
-    /* Scrollbar styling for sidebar */
-    aside::-webkit-scrollbar { width:4px; }
-    aside::-webkit-scrollbar-thumb { background:rgba(193,198,214,.5); border-radius:4px; }
+    /* ══ PIN SCREEN ANIMATION ════════════════════════════════ */
+    @keyframes pin-card-in {
+      from { opacity: 0; transform: scale(0.96) translateY(10px); }
+      to   { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    #pin-screen .pin-card {
+      animation: pin-card-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+    }
+
+    /* ══ ARCHIVE SEARCH INPUT ════════════════════════════════ */
+    .archive-search {
+      background: #f2f4f6;
+      border: none;
+      border-radius: 12px;
+      padding: 10px 16px 10px 42px;
+      font-size: 14px;
+      font-family: 'Inter', sans-serif;
+      color: #191c1e;
+      width: 300px;
+      transition: background .2s, box-shadow .2s;
+      outline: none;
+    }
+    .archive-search:focus {
+      background: #fff;
+      box-shadow: 0 0 0 2px rgba(0,91,191,0.18);
+    }
+
+    /* ══ MINI STAT CHIP ══════════════════════════════════════ */
+    .stat-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 12px;
+      border-radius: 100px;
+      font-size: 11px;
+      font-weight: 700;
+      font-family: 'Manrope', sans-serif;
+      letter-spacing: .03em;
+    }
+
+    /* Subtle dot-grid texture for the canvas workspace */
+    .signature-canvas-bg {
+      background-image:
+        linear-gradient(to right,  rgba(0,0,0,0.025) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(0,0,0,0.025) 1px, transparent 1px);
+      background-size: 22px 22px;
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       FIX #3: PIN INPUT — guaranteed white background + visible
+       border enforced with !important so neither Tailwind's
+       forms-plugin resets nor the glass-panel translucent
+       backdrop can bleed through and make the field invisible.
+    ══════════════════════════════════════════════════════════ */
+    #pin-input {
+      background-color: #ffffff !important;
+      border: 2.5px solid rgba(0, 91, 191, 0.40) !important;
+      box-shadow:
+        0 4px 20px rgba(0, 91, 191, 0.08),
+        inset 0 2px 6px rgba(0, 0, 0, 0.03) !important;
+      outline: none !important;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+    #pin-input:focus {
+      border-color: rgba(0, 91, 191, 0.75) !important;
+      box-shadow:
+        0 0 0 4px rgba(0, 91, 191, 0.12),
+        0 4px 20px rgba(0, 91, 191, 0.12) !important;
+    }
+
+    /* Sidebar scrollbar */
+    aside::-webkit-scrollbar { width: 4px; }
+    aside::-webkit-scrollbar-thumb { background: rgba(193,198,214,.5); border-radius: 4px; }
+
+    /* Archive panel scrollbar */
+    #tab-archive::-webkit-scrollbar { width: 5px; }
+    #tab-archive::-webkit-scrollbar-thumb { background: rgba(193,198,214,.6); border-radius: 4px; }
   </style>
 </head>
 
 <body class="bg-surface font-body text-on-surface min-h-screen overflow-hidden">
 
 <!-- ════════════════════════════════════════════════════════════
-     APP SHELL  (blurred until PIN passes)
+     APP SHELL  (blurred/dimmed until PIN passes)
+     script.js unlockApp() removes: blur-md, pointer-events-none,
+     grayscale-[0.2], opacity-40
 ════════════════════════════════════════════════════════════ -->
 <div id="app-dashboard"
      class="filter blur-md pointer-events-none opacity-40 grayscale-[0.2]
             transition-all duration-700 ease-in-out h-screen w-full flex flex-col">
 
-  <!-- ── TOP NAV ──────────────────────────────────────────── -->
+  <!-- ══════════════════════════════════════════════════════════
+       TOP NAVIGATION BAR
+       FIX #2:
+         • "Templates" nav-tab removed.
+         • Security "shield" icon button removed from the right.
+  ══════════════════════════════════════════════════════════════ -->
   <header class="w-full sticky top-0 z-40 bg-surface-bright
                  flex items-center justify-between px-8 h-16
-                 shadow-[0_1px_0_rgba(193,198,214,0.4)]">
+                 shadow-[0_1px_0_rgba(193,198,214,0.35)]">
 
-    <!-- Left: Logo + nav tabs -->
+    <!-- Left: Brand + Nav Tabs -->
     <div class="flex items-center gap-8">
       <!-- Logo / Brand -->
       <a href="#" class="flex items-center gap-2.5 shrink-0">
         <img src="logo192.png" alt="Ink Sign Studio"
              class="w-8 h-8 rounded-lg object-contain"
              onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/>
-        <div class="w-8 h-8 rounded-lg bg-primary items-center justify-center text-white hidden">
+        <div class="w-8 h-8 rounded-lg bg-primary items-center justify-center text-white"
+             style="display:none">
           <span class="material-symbols-outlined text-base">history_edu</span>
         </div>
         <span class="font-headline font-extrabold text-lg tracking-tight text-on-surface">
@@ -283,17 +489,25 @@
         </span>
       </a>
 
-      <!-- SPA Nav Tabs -->
+      <!-- SPA Nav Tabs — only Dashboard and Archive (Templates removed per Fix #2) -->
       <nav class="hidden md:flex gap-7 ml-2">
         <button class="nav-tab active" data-tab="dashboard">Dashboard</button>
-        <button class="nav-tab" data-tab="archive">Archive</button>
-        <button class="nav-tab" data-tab="templates">Templates</button>
+        <button class="nav-tab"        data-tab="archive">Archive</button>
       </nav>
     </div>
 
-    <!-- Right: actions -->
+    <!-- Right: Actions — shield icon removed per Fix #2 -->
     <div class="flex items-center gap-2">
-      <!-- Reset App -->
+      <!-- E-Sign Active status chip -->
+      <div class="hidden sm:flex items-center gap-1.5 bg-tertiary-fixed/60
+                  px-3 py-1.5 rounded-full mr-2">
+        <span class="material-symbols-outlined text-sm text-on-tertiary-fixed"
+              style="font-variation-settings:'FILL' 1">verified_user</span>
+        <span class="text-[10px] font-bold text-on-tertiary-fixed uppercase tracking-wider">
+          E-Sign Active
+        </span>
+      </div>
+      <!-- Reset App button -->
       <button id="btn-reset-app"
               title="Reset App — clears PIN and all saved stamps"
               class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg
@@ -302,24 +516,34 @@
         <span class="material-symbols-outlined text-sm">delete_sweep</span>
         Reset
       </button>
-      <div class="p-2 text-on-surface-variant hover:bg-surface-container-high rounded-full cursor-pointer transition-colors">
-        <span class="material-symbols-outlined">security</span>
-      </div>
     </div>
   </header>
 
 
-  <!-- ── TAB PANELS CONTAINER ─────────────────────────────── -->
+  <!-- ══════════════════════════════════════════════════════════
+       TAB PANELS CONTAINER
+       Fills the space below the header.  The active tab panel
+       expands to fill this flex container.
+  ══════════════════════════════════════════════════════════════ -->
   <div class="flex flex-1 overflow-hidden relative">
 
     <!-- ══════════════════════════════════════════════════════
-         TAB 1: DASHBOARD  (Document Organizer + PDF Signer)
+         TAB 1 — DASHBOARD
+         FIX #1 & #4:
+           • .tab-panel.active → display:flex, flex-direction:column
+           • #tab-dashboard.active → flex-direction:row, overflow:hidden
+             This lets the sidebar and the <main> sit side-by-side.
+           • <main> uses overflow-y:auto so it scrolls independently.
+           • script.js controls organizer vs. signing canvas purely
+             through element .style.display assignments — no class
+             toggle is needed and none is used here.
     ══════════════════════════════════════════════════════════ -->
-    <div id="tab-dashboard" class="tab-panel active w-full flex">
+    <div id="tab-dashboard" class="tab-panel active w-full">
 
-      <!-- SIDEBAR -->
+      <!-- ── SIDEBAR ─────────────────────────────────────────── -->
       <aside class="h-full w-72 shrink-0 bg-surface-container-low
-                    flex flex-col p-5 gap-y-3 overflow-y-auto">
+                    flex flex-col p-5 gap-y-3 overflow-y-auto
+                    shadow-[1px_0_0_rgba(193,198,214,0.25)]">
 
         <!-- Studio brand pill -->
         <div class="flex items-center gap-3 mb-1">
@@ -335,7 +559,7 @@
           </div>
         </div>
 
-        <!-- Upload zone (always visible) -->
+        <!-- Upload zone — always visible; click triggers #pdf-file-input -->
         <div id="upload-area"
              class="cursor-pointer p-4 border-2 border-dashed border-outline-variant
                     hover:border-primary rounded-xl transition-all
@@ -349,25 +573,30 @@
           <p class="text-[10px] text-on-surface-variant/60 mt-1">Multiple files · Max 25 MB each</p>
         </div>
 
-        <!-- ── ORGANIZER CONTROLS (shown on organizer screen) ── -->
+        <!-- ── ORGANIZER CONTROLS ──────────────────────────────
+             Starts hidden via style="display:none".
+             script.js showOrganizerScreen() → display:'flex'
+             script.js showSigningScreen()   → display:'none'
+        ─────────────────────────────────────────────────────── -->
         <div id="organizer-controls" style="display:none" class="flex flex-col gap-y-3">
           <div class="h-px bg-outline-variant/20"></div>
           <h3 class="font-label text-[10px] tracking-widest uppercase font-bold text-on-surface-variant">
             Document Organizer
           </h3>
           <p class="text-[10px] text-on-surface-variant leading-relaxed">
-            Drag thumbnails to reorder&nbsp;·&nbsp;tap
+            Drag thumbnails to reorder · tap
             <span class="material-symbols-outlined text-[11px] align-middle">close</span>
-            to remove a page&nbsp;·&nbsp;upload more PDFs above.
+            to remove a page · upload more PDFs above.
           </p>
 
           <!-- Page count badge -->
           <div class="flex items-center gap-2 bg-primary/8 rounded-xl px-3 py-2.5">
             <span class="material-symbols-outlined text-primary text-base">description</span>
-            <span id="org-page-count" class="text-xs font-bold text-primary font-headline">0 pages</span>
+            <span id="org-page-count"
+                  class="text-xs font-bold text-primary font-headline">0 pages</span>
           </div>
 
-          <!-- Proceed button -->
+          <!-- Proceed to Sign -->
           <button id="btn-proceed-sign"
                   class="w-full py-3 rounded-xl font-bold text-xs
                          flex items-center justify-center gap-2
@@ -388,8 +617,13 @@
             Start Over
           </button>
         </div>
+        <!-- /organizer-controls -->
 
-        <!-- ── STAMP / SIGNING CONTROLS (shown on signing screen) ── -->
+        <!-- ── STAMP / SIGNING CONTROLS ────────────────────────
+             Starts hidden via style="display:none".
+             script.js showSigningScreen()   → display:'flex'
+             script.js showOrganizerScreen() → display:'none'
+        ─────────────────────────────────────────────────────── -->
         <div id="stamp-controls" style="display:none" class="flex flex-col gap-y-3">
           <div class="h-px bg-outline-variant/20"></div>
           <h3 class="font-label text-[10px] tracking-widest uppercase font-bold text-on-surface-variant">
@@ -447,11 +681,9 @@
 
           <button id="btn-toggle-draw"
                   class="w-full py-2.5 rounded-xl font-bold text-xs transition-all
-                         bg-surface-container-lowest
-                         text-on-surface-variant
+                         bg-surface-container-lowest text-on-surface-variant
                          hover:bg-primary/5 hover:text-primary
-                         flex items-center justify-center gap-2
-                         shadow-ambient-sm">
+                         flex items-center justify-center gap-2 shadow-ambient-sm">
             <span class="material-symbols-outlined text-base">edit</span>
             <span id="draw-btn-label">Start Drawing</span>
           </button>
@@ -501,6 +733,7 @@
               Clear All Strokes
             </button>
           </div>
+          <!-- /draw-toolbar -->
 
           <!-- Delete selected -->
           <button id="btn-delete-sel"
@@ -512,7 +745,7 @@
             <span class="text-[9px] opacity-60">(or Del key)</span>
           </button>
 
-          <!-- Back to organizer -->
+          <!-- Back to Organizer -->
           <button id="btn-back-organizer"
                   class="w-full py-2 rounded-lg font-bold text-xs
                          flex items-center justify-center gap-2
@@ -522,7 +755,7 @@
             Back to Organizer
           </button>
 
-          <!-- Download -->
+          <!-- Download Signed PDF -->
           <div class="mt-auto pt-2">
             <button id="btn-download"
                     class="w-full py-3 rounded-xl font-bold text-xs
@@ -541,20 +774,55 @@
       <!-- /sidebar -->
 
 
-      <!-- MAIN CANVAS AREA -->
-      <main class="flex-1 bg-surface-container-high overflow-auto
-                   flex flex-col items-center justify-start gap-4 p-8">
+      <!-- ── MAIN CANVAS AREA ────────────────────────────────────────
+           FIX #1 & #4:
+           flex-1 expands to fill remaining width beside the sidebar.
+           overflow-y:auto lets both the organizer grid (many thumbnails)
+           and the signing canvas (tall PDFs) scroll within this pane.
+           script.js directly sets style.display on #organizer-screen
+           and #pdf-wrapper to switch between the two states — no class
+           toggle is required and the CSS does not interfere.
+      ──────────────────────────────────────────────────────────────── -->
+      <main class="flex-1 bg-surface-container-high overflow-y-auto
+                   flex flex-col items-center justify-start gap-4 p-8
+                   signature-canvas-bg">
 
-        <!-- Placeholder (no PDF yet) -->
+        <!-- ─── Placeholder (shown until first upload) ─── -->
         <div id="pdf-placeholder">
-          <span class="material-symbols-outlined text-5xl mb-4">note_add</span>
-          <p class="font-headline font-bold text-sm">PDF കാൻവാസ്</p>
-          <p class="text-xs text-on-surface-variant mt-1">
-            Upload one or more PDFs to organise and sign
+          <div class="mb-6 relative">
+            <div class="w-24 h-32 bg-surface-container rounded-xl
+                        shadow-[0_8px_24px_rgba(0,91,191,0.08)]
+                        flex items-center justify-center
+                        border border-outline-variant/15">
+              <span class="material-symbols-outlined text-5xl text-outline-variant/60">description</span>
+            </div>
+            <div class="absolute -bottom-3 -right-3 w-10 h-10 bg-primary rounded-xl
+                        flex items-center justify-center shadow-ambient-sm">
+              <span class="material-symbols-outlined text-white text-lg"
+                    style="font-variation-settings:'FILL' 1">add</span>
+            </div>
+          </div>
+          <p class="font-headline font-bold text-base text-on-surface/70 mt-2">PDF കാൻവാസ്</p>
+          <p class="text-xs text-on-surface-variant/60 mt-1 text-center max-w-[200px] leading-relaxed">
+            Upload one or more PDFs to organise, reorder and sign
           </p>
+          <div class="mt-6 flex items-center gap-3">
+            <div class="stat-chip bg-surface-container text-on-surface-variant">
+              <span class="material-symbols-outlined text-sm">merge</span>
+              Multi-PDF Merge
+            </div>
+            <div class="stat-chip bg-surface-container text-on-surface-variant">
+              <span class="material-symbols-outlined text-sm">draw</span>
+              Ink Stamp
+            </div>
+          </div>
         </div>
 
-        <!-- Step 1: Document Organizer -->
+        <!-- ─── Step 1: DOCUMENT ORGANIZER SCREEN ───────────────
+             Starts hidden (CSS: #organizer-screen { display:none })
+             script.js showOrganizerScreen() → style.display='block'
+             script.js showSigningScreen()   → style.display='none'
+        ─────────────────────────────────────────────────────────── -->
         <div id="organizer-screen"
              class="w-full max-w-5xl bg-surface-container-lowest rounded-2xl
                     shadow-ambient p-6">
@@ -562,11 +830,12 @@
             <div>
               <h2 class="font-headline font-bold text-lg text-on-surface">Document Organizer</h2>
               <p class="text-xs text-on-surface-variant mt-0.5">
-                Drag pages to reorder&nbsp;·&nbsp;click × to remove&nbsp;·&nbsp;upload more PDFs above
+                Drag pages to reorder · click × to remove · upload more PDFs above
               </p>
             </div>
             <!-- Inline spinner while thumbnails render -->
-            <div id="org-spinner" class="hidden flex items-center gap-2 text-primary text-xs font-bold">
+            <div id="org-spinner"
+                 class="hidden flex items-center gap-2 text-primary text-xs font-bold">
               <svg class="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
                 <circle class="opacity-25" cx="12" cy="12" r="10"
                         stroke="currentColor" stroke-width="4"/>
@@ -576,8 +845,10 @@
             </div>
           </div>
 
+          <!-- Thumbnail drag-and-drop grid — populated by script.js -->
           <div id="thumb-grid"></div>
 
+          <!-- Empty-state message — shown by script.js when all pages removed -->
           <div id="org-empty" class="hidden py-16 text-center text-on-surface-variant/50">
             <span class="material-symbols-outlined text-5xl mb-3">image_not_supported</span>
             <p class="text-sm font-bold">All pages removed</p>
@@ -585,15 +856,20 @@
           </div>
         </div>
 
-        <!-- Stamp hint banner (injected by JS between here and pagination) -->
-
-        <!-- Step 2: Signing canvas -->
+        <!-- ─── Step 2: SIGNING CANVAS ────────────────────────────
+             FIX #4:
+             Starts hidden via inline style="display:none".
+             script.js showSigningScreen()   → style.display='inline-block'
+             script.js showOrganizerScreen() → style.display='none'
+             The pagination bar created by script.js is inserted
+             immediately after this wrapper (pdfWrapper.nextSibling).
+        ─────────────────────────────────────────────────────────── -->
         <div id="pdf-wrapper" style="display:none">
           <canvas id="pdf-render-canvas"></canvas>
           <canvas id="fabric-canvas-el"></canvas>
           <div id="page-info"></div>
         </div>
-        <!-- Pagination bar injected by JS here -->
+        <!-- Pagination bar injected here at runtime by script.js -->
 
       </main>
 
@@ -602,464 +878,304 @@
 
 
     <!-- ══════════════════════════════════════════════════════
-         TAB 2: ARCHIVE  (static Stitch layout)
+         TAB 2 — ARCHIVE  (Document Archive, Stitch design)
     ══════════════════════════════════════════════════════════ -->
     <div id="tab-archive" class="tab-panel w-full bg-surface">
 
-      <!-- Archive header bar -->
-      <div class="sticky top-0 z-10 bg-surface-bright
-                  flex items-center justify-between px-12 py-4 h-20
+      <!-- Archive sticky header -->
+      <div class="sticky top-0 z-20 glass-toolbar px-10 py-4
+                  flex items-center justify-between
                   shadow-[0_1px_0_rgba(193,198,214,0.3)]">
         <div>
-          <h2 class="text-xl font-extrabold font-headline text-on-surface">Document Archive</h2>
-          <p class="text-xs text-on-surface-variant font-medium">രേഖകളുടെ ശേഖരം</p>
+          <h2 class="font-headline font-extrabold text-xl text-on-surface">Document Archive</h2>
+          <p class="text-xs text-on-surface-variant font-medium mt-0.5">രേഖകളുടെ ശേഖരം</p>
         </div>
-        <div class="flex items-center gap-4">
+        <div class="flex items-center gap-5">
+          <!-- Search box -->
           <div class="relative">
-            <span class="absolute inset-y-0 left-3 flex items-center text-outline">
+            <span class="absolute inset-y-0 left-3.5 flex items-center
+                         text-outline pointer-events-none">
               <span class="material-symbols-outlined text-lg">search</span>
             </span>
-            <input class="pl-10 pr-4 py-2 bg-surface-container-low border-none
-                          rounded-lg text-sm w-72 focus:ring-2 focus:ring-primary/20 transition-all"
-                   placeholder="Search documents… / രേഖകൾ തിരയുക…" type="text"/>
+            <input class="archive-search"
+                   placeholder="Search documents… / രേഖകൾ തിരയുക…"
+                   type="text"/>
           </div>
+          <!-- View toggles -->
           <div class="flex gap-2">
             <button class="p-2 bg-surface-container-low rounded-lg text-on-surface-variant
                            hover:bg-surface-container-high transition-colors">
-              <span class="material-symbols-outlined">grid_view</span>
+              <span class="material-symbols-outlined text-lg">grid_view</span>
             </button>
             <button class="p-2 bg-primary-container text-white rounded-lg shadow-ambient-sm">
-              <span class="material-symbols-outlined">list</span>
+              <span class="material-symbols-outlined text-lg">list</span>
             </button>
           </div>
         </div>
       </div>
 
       <!-- Archive content -->
-      <div class="px-12 py-8 max-w-7xl mx-auto space-y-4">
+      <div class="px-10 py-8 max-w-6xl mx-auto w-full">
 
         <!-- Filter chips -->
-        <div class="flex gap-3 mb-6 flex-wrap">
-          <button class="px-4 py-2 bg-primary-container text-white rounded-full text-xs font-bold shadow-ambient-sm">All Documents</button>
-          <button class="px-4 py-2 bg-surface-container-low text-on-surface-variant rounded-full text-xs font-bold hover:bg-surface-container-high transition-colors">Signed</button>
-          <button class="px-4 py-2 bg-surface-container-low text-on-surface-variant rounded-full text-xs font-bold hover:bg-surface-container-high transition-colors">Pending</button>
-          <button class="px-4 py-2 bg-surface-container-low text-on-surface-variant rounded-full text-xs font-bold hover:bg-surface-container-high transition-colors">Drafts</button>
+        <div class="flex items-center gap-3 mb-8">
+          <button class="stat-chip bg-primary text-white shadow-ambient-sm">All Documents</button>
+          <button class="stat-chip bg-surface-container text-on-surface-variant
+                         hover:bg-surface-container-high transition-colors cursor-pointer">
+            <span class="w-2 h-2 bg-green-500 rounded-full"></span>
+            Signed
+          </button>
+          <button class="stat-chip bg-surface-container text-on-surface-variant
+                         hover:bg-surface-container-high transition-colors cursor-pointer">
+            <span class="w-2 h-2 bg-orange-400 rounded-full animate-pulse"></span>
+            Pending
+          </button>
+          <button class="stat-chip bg-surface-container text-on-surface-variant
+                         hover:bg-surface-container-high transition-colors cursor-pointer">
+            <span class="material-symbols-outlined text-sm">folder</span>
+            Drafts
+          </button>
         </div>
 
-        <!-- Document rows -->
-        <div class="grid grid-cols-12 gap-6">
+        <!-- Bento Grid -->
+        <div class="grid grid-cols-12 gap-5">
 
-          <!-- Row 1 -->
-          <div class="col-span-12 flex items-center p-5 bg-surface-container-lowest
-                      rounded-xl shadow-ambient-sm hover:shadow-ambient-md transition-shadow">
-            <div class="w-14 h-14 bg-blue-50 rounded-xl flex items-center
-                        justify-center text-primary-container mr-6 shrink-0">
-              <span class="material-symbols-outlined text-3xl">description</span>
+          <!-- Document row 1 -->
+          <div class="col-span-12 doc-row gap-5">
+            <div class="shrink-0 bg-blue-50 rounded-xl flex items-center
+                        justify-center text-primary-container"
+                 style="width:52px;height:52px">
+              <span class="material-symbols-outlined text-2xl"
+                    style="font-variation-settings:'FILL' 1">description</span>
             </div>
             <div class="flex-1 min-w-0">
-              <h4 class="font-bold text-on-surface text-sm leading-tight truncate">
+              <h4 class="font-headline font-bold text-on-surface text-sm leading-tight truncate">
                 Investment_Agreement_v4.pdf
               </h4>
-              <p class="text-xs text-on-surface-variant mt-1">നിക്ഷേപ കരാർ&nbsp;·&nbsp;2.4 MB</p>
+              <p class="text-xs text-on-surface-variant/70 mt-0.5">നിക്ഷേപ കരാർ · 2.4 MB</p>
             </div>
-            <div class="px-8 border-x border-outline-variant/20 flex flex-col gap-1 shrink-0">
-              <span class="text-[10px] text-on-surface-variant font-bold uppercase">Signed Date</span>
-              <span class="text-sm font-semibold text-on-surface font-headline">Oct 24, 2024</span>
+            <div class="px-7 border-x border-outline-variant/15 flex flex-col gap-0.5 shrink-0">
+              <span class="text-[10px] text-on-surface-variant/60 font-bold uppercase tracking-wider">Signed Date</span>
+              <span class="text-sm font-headline font-semibold text-on-surface">Oct 24, 2023</span>
             </div>
-            <div class="px-8 flex items-center shrink-0">
-              <span class="flex items-center gap-1.5 px-3 py-1 bg-green-50 text-green-700
-                           rounded-full text-xs font-bold">
+            <div class="px-6 flex items-center shrink-0">
+              <span class="stat-chip bg-green-50 text-green-700">
                 <span class="w-1.5 h-1.5 bg-green-500 rounded-full"></span>
                 Signed / ഒപ്പിട്ടു
               </span>
             </div>
-            <div class="flex gap-2 ml-auto">
-              <button class="w-10 h-10 flex items-center justify-center
-                             text-on-surface-variant hover:text-primary transition-colors">
-                <span class="material-symbols-outlined">download</span>
+            <div class="flex gap-1.5 ml-auto shrink-0">
+              <button class="w-9 h-9 flex items-center justify-center text-on-surface-variant
+                             hover:text-primary hover:bg-surface-container-high
+                             rounded-lg transition-colors">
+                <span class="material-symbols-outlined text-lg">download</span>
               </button>
-              <button class="w-10 h-10 flex items-center justify-center
-                             text-on-surface-variant hover:text-primary transition-colors">
-                <span class="material-symbols-outlined">more_vert</span>
+              <button class="w-9 h-9 flex items-center justify-center text-on-surface-variant
+                             hover:text-primary hover:bg-surface-container-high
+                             rounded-lg transition-colors">
+                <span class="material-symbols-outlined text-lg">more_vert</span>
               </button>
             </div>
           </div>
 
-          <!-- Row 2 -->
-          <div class="col-span-12 flex items-center p-5 bg-surface-container-lowest
-                      rounded-xl shadow-ambient-sm hover:shadow-ambient-md transition-shadow">
-            <div class="w-14 h-14 bg-orange-50 rounded-xl flex items-center
-                        justify-center text-orange-600 mr-6 shrink-0">
-              <span class="material-symbols-outlined text-3xl">history_edu</span>
+          <!-- Document row 2 -->
+          <div class="col-span-12 doc-row gap-5">
+            <div class="shrink-0 bg-orange-50 rounded-xl flex items-center
+                        justify-center text-orange-500"
+                 style="width:52px;height:52px">
+              <span class="material-symbols-outlined text-2xl"
+                    style="font-variation-settings:'FILL' 1">history_edu</span>
             </div>
             <div class="flex-1 min-w-0">
-              <h4 class="font-bold text-on-surface text-sm leading-tight truncate">
+              <h4 class="font-headline font-bold text-on-surface text-sm leading-tight truncate">
                 Property_Lease_Draft.pdf
               </h4>
-              <p class="text-xs text-on-surface-variant mt-1">വാടക കരാർ&nbsp;·&nbsp;1.1 MB</p>
+              <p class="text-xs text-on-surface-variant/70 mt-0.5">വാടക കരാർ · 1.1 MB</p>
             </div>
-            <div class="px-8 border-x border-outline-variant/20 flex flex-col gap-1 shrink-0">
-              <span class="text-[10px] text-on-surface-variant font-bold uppercase">Request Date</span>
-              <span class="text-sm font-semibold text-on-surface font-headline">Oct 27, 2024</span>
+            <div class="px-7 border-x border-outline-variant/15 flex flex-col gap-0.5 shrink-0">
+              <span class="text-[10px] text-on-surface-variant/60 font-bold uppercase tracking-wider">Request Date</span>
+              <span class="text-sm font-headline font-semibold text-on-surface">Oct 27, 2023</span>
             </div>
-            <div class="px-8 flex items-center shrink-0">
-              <span class="flex items-center gap-1.5 px-3 py-1 bg-orange-50 text-orange-700
-                           rounded-full text-xs font-bold">
-                <span class="w-1.5 h-1.5 bg-orange-500 rounded-full animate-pulse"></span>
+            <div class="px-6 flex items-center shrink-0">
+              <span class="stat-chip bg-orange-50 text-orange-700">
+                <span class="w-1.5 h-1.5 bg-orange-400 rounded-full animate-pulse"></span>
                 Pending / ബാക്കിയുണ്ട്
               </span>
             </div>
-            <div class="flex gap-2 ml-auto">
-              <button class="px-4 py-2 bg-primary-container/10 text-primary font-bold
+            <div class="flex gap-1.5 ml-auto shrink-0">
+              <button class="px-4 py-1.5 bg-primary-container/10 text-primary font-bold
                              text-xs rounded-lg hover:bg-primary-container/20 transition-colors">
                 Action Required
               </button>
-              <button class="w-10 h-10 flex items-center justify-center
-                             text-on-surface-variant hover:text-primary transition-colors">
-                <span class="material-symbols-outlined">more_vert</span>
+              <button class="w-9 h-9 flex items-center justify-center text-on-surface-variant
+                             hover:text-primary hover:bg-surface-container-high
+                             rounded-lg transition-colors">
+                <span class="material-symbols-outlined text-lg">more_vert</span>
               </button>
             </div>
           </div>
 
-          <!-- Row 3 -->
-          <div class="col-span-12 flex items-center p-5 bg-surface-container-lowest
-                      rounded-xl shadow-ambient-sm hover:shadow-ambient-md transition-shadow">
-            <div class="w-14 h-14 bg-purple-50 rounded-xl flex items-center
-                        justify-center text-purple-600 mr-6 shrink-0">
-              <span class="material-symbols-outlined text-3xl">article</span>
+          <!-- Document row 3 -->
+          <div class="col-span-12 doc-row gap-5">
+            <div class="shrink-0 bg-purple-50 rounded-xl flex items-center
+                        justify-center text-purple-500"
+                 style="width:52px;height:52px">
+              <span class="material-symbols-outlined text-2xl"
+                    style="font-variation-settings:'FILL' 1">article</span>
             </div>
             <div class="flex-1 min-w-0">
-              <h4 class="font-bold text-on-surface text-sm leading-tight truncate">
+              <h4 class="font-headline font-bold text-on-surface text-sm leading-tight truncate">
                 NDA_Confidential_Global.pdf
               </h4>
-              <p class="text-xs text-on-surface-variant mt-1">രഹസ്യരേഖ&nbsp;·&nbsp;850 KB</p>
+              <p class="text-xs text-on-surface-variant/70 mt-0.5">രഹസ്യരേഖ · 850 KB</p>
             </div>
-            <div class="px-8 border-x border-outline-variant/20 flex flex-col gap-1 shrink-0">
-              <span class="text-[10px] text-on-surface-variant font-bold uppercase">Signed Date</span>
-              <span class="text-sm font-semibold text-on-surface font-headline">Oct 21, 2024</span>
+            <div class="px-7 border-x border-outline-variant/15 flex flex-col gap-0.5 shrink-0">
+              <span class="text-[10px] text-on-surface-variant/60 font-bold uppercase tracking-wider">Signed Date</span>
+              <span class="text-sm font-headline font-semibold text-on-surface">Oct 21, 2023</span>
             </div>
-            <div class="px-8 flex items-center shrink-0">
-              <span class="flex items-center gap-1.5 px-3 py-1 bg-green-50 text-green-700
-                           rounded-full text-xs font-bold">
+            <div class="px-6 flex items-center shrink-0">
+              <span class="stat-chip bg-green-50 text-green-700">
                 <span class="w-1.5 h-1.5 bg-green-500 rounded-full"></span>
                 Signed / ഒപ്പിട്ടു
               </span>
             </div>
-            <div class="flex gap-2 ml-auto">
-              <button class="w-10 h-10 flex items-center justify-center
-                             text-on-surface-variant hover:text-primary transition-colors">
-                <span class="material-symbols-outlined">download</span>
+            <div class="flex gap-1.5 ml-auto shrink-0">
+              <button class="w-9 h-9 flex items-center justify-center text-on-surface-variant
+                             hover:text-primary hover:bg-surface-container-high
+                             rounded-lg transition-colors">
+                <span class="material-symbols-outlined text-lg">download</span>
               </button>
-              <button class="w-10 h-10 flex items-center justify-center
-                             text-on-surface-variant hover:text-primary transition-colors">
-                <span class="material-symbols-outlined">more_vert</span>
+              <button class="w-9 h-9 flex items-center justify-center text-on-surface-variant
+                             hover:text-primary hover:bg-surface-container-high
+                             rounded-lg transition-colors">
+                <span class="material-symbols-outlined text-lg">more_vert</span>
               </button>
             </div>
           </div>
 
-          <!-- Insight cards row -->
+          <!-- Document row 4 -->
+          <div class="col-span-12 doc-row gap-5">
+            <div class="shrink-0 bg-sky-50 rounded-xl flex items-center
+                        justify-center text-sky-500"
+                 style="width:52px;height:52px">
+              <span class="material-symbols-outlined text-2xl"
+                    style="font-variation-settings:'FILL' 1">receipt_long</span>
+            </div>
+            <div class="flex-1 min-w-0">
+              <h4 class="font-headline font-bold text-on-surface text-sm leading-tight truncate">
+                Service_Agreement_eOffice_2024.pdf
+              </h4>
+              <p class="text-xs text-on-surface-variant/70 mt-0.5">
+                സേവന കരാർ · 3.2 MB · eOffice flattened
+              </p>
+            </div>
+            <div class="px-7 border-x border-outline-variant/15 flex flex-col gap-0.5 shrink-0">
+              <span class="text-[10px] text-on-surface-variant/60 font-bold uppercase tracking-wider">Signed Date</span>
+              <span class="text-sm font-headline font-semibold text-on-surface">Nov 02, 2023</span>
+            </div>
+            <div class="px-6 flex items-center shrink-0">
+              <span class="stat-chip bg-green-50 text-green-700">
+                <span class="w-1.5 h-1.5 bg-green-500 rounded-full"></span>
+                Signed / ഒപ്പിട്ടു
+              </span>
+            </div>
+            <div class="flex gap-1.5 ml-auto shrink-0">
+              <button class="w-9 h-9 flex items-center justify-center text-on-surface-variant
+                             hover:text-primary hover:bg-surface-container-high
+                             rounded-lg transition-colors">
+                <span class="material-symbols-outlined text-lg">download</span>
+              </button>
+              <button class="w-9 h-9 flex items-center justify-center text-on-surface-variant
+                             hover:text-primary hover:bg-surface-container-high
+                             rounded-lg transition-colors">
+                <span class="material-symbols-outlined text-lg">more_vert</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Security Insight Card (dark bento) -->
           <div class="col-span-8 p-8 bg-slate-900 rounded-3xl relative overflow-hidden group">
             <div class="relative z-10 flex h-full items-center gap-8">
               <div class="flex-1">
-                <div class="flex items-center gap-2 mb-4">
+                <div class="flex items-center gap-2 mb-5">
                   <span class="px-3 py-1 bg-tertiary-fixed text-on-tertiary-fixed
                                rounded-full text-[10px] font-bold uppercase tracking-wider">
-                    Security Badge
+                    Security Identity Badge
                   </span>
                 </div>
-                <h3 class="text-2xl font-bold text-white mb-2 font-headline">Blockchain Verified Vault</h3>
-                <p class="text-slate-400 text-sm leading-relaxed mb-6">
-                  Your document integrity is secured with 256-bit AES encryption and
-                  anchored to the sovereign ledger for eternal verification.
+                <h3 class="font-headline text-2xl font-bold text-white mb-2">
+                  Blockchain Verified Vault
+                </h3>
+                <p class="text-slate-400 text-sm leading-relaxed mb-6 max-w-sm">
+                  Your document integrity is secured. SHA-256 hashing anchors every signed
+                  document — ensuring tamper-proof verification at any time.
                 </p>
-                <button class="flex items-center gap-2 text-white font-bold text-sm">
+                <button class="flex items-center gap-2 text-white font-bold text-sm
+                               hover:text-tertiary-fixed-dim transition-colors">
                   View Security Protocols
                   <span class="material-symbols-outlined text-sm">arrow_forward</span>
                 </button>
               </div>
-              <div class="w-32 h-32 rounded-2xl bg-white/5 border border-white/10
-                          backdrop-blur-md flex items-center justify-center shrink-0">
-                <span class="material-symbols-outlined text-white/20 text-6xl">verified</span>
+              <div class="shrink-0">
+                <div class="w-28 h-28 rounded-2xl bg-white/5 border border-white/10
+                            backdrop-blur-md flex items-center justify-center">
+                  <span class="material-symbols-outlined text-white/30 text-6xl"
+                        style="font-variation-settings:'FILL' 1">verified</span>
+                </div>
               </div>
             </div>
+            <!-- Ambient glow blob -->
             <div class="absolute -right-16 -bottom-16 w-64 h-64 bg-primary rounded-full
                         blur-[100px] opacity-20 group-hover:opacity-30 transition-opacity"></div>
           </div>
 
-          <div class="col-span-4 p-8 bg-surface-container-low rounded-3xl
-                      flex flex-col justify-between">
+          <!-- Stats Card -->
+          <div class="col-span-4 p-8 bg-surface-container-low rounded-3xl flex flex-col
+                      justify-between border border-outline-variant/10">
             <div>
-              <h5 class="text-on-surface-variant font-bold text-[10px] uppercase
-                         tracking-widest mb-1">
+              <h5 class="text-on-surface-variant/70 font-bold text-[10px]
+                         uppercase tracking-widest mb-1">
                 Monthly Volume / പ്രതിമാസ രേഖകൾ
               </h5>
-              <p class="text-4xl font-extrabold text-on-surface font-headline">142</p>
+              <p class="font-headline text-4xl font-extrabold text-on-surface">142</p>
             </div>
             <div class="mt-8">
               <div class="flex justify-between items-end mb-2">
                 <span class="text-xs font-bold text-on-surface-variant">Storage Used</span>
                 <span class="text-xs font-bold text-primary">64%</span>
               </div>
-              <div class="h-2 w-full bg-surface-container-high rounded-full overflow-hidden">
+              <div class="h-2 w-full bg-surface-container-highest rounded-full overflow-hidden">
                 <div class="h-full bg-primary-container w-[64%] rounded-full"></div>
               </div>
-              <p class="text-[10px] text-on-surface-variant mt-2 font-medium">
+              <p class="text-[10px] text-on-surface-variant/60 mt-2 font-medium">
                 8.2 GB of 12.0 GB remaining
               </p>
             </div>
           </div>
+
         </div>
-
-        <!-- Footer meta -->
-        <footer class="mt-8 pt-6 border-t border-outline-variant/20
-                       flex justify-between items-center
-                       text-[11px] text-on-surface-variant font-bold uppercase tracking-widest">
-          <div class="flex gap-8">
-            <span>Active Sessions: 02</span>
-            <span>Last Login: 14:22 IST</span>
-          </div>
-          <div class="flex gap-4">
-            <a class="hover:text-primary transition-colors" href="#">Privacy Policy</a>
-            <a class="hover:text-primary transition-colors" href="#">Terms of Use</a>
-          </div>
-        </footer>
-      </div>
-    </div>
-    <!-- /tab-archive -->
-
-
-    <!-- ══════════════════════════════════════════════════════
-         TAB 3: TEMPLATES  (static Stitch layout)
-    ══════════════════════════════════════════════════════════ -->
-    <div id="tab-templates" class="tab-panel w-full bg-background">
-
-      <!-- Templates header -->
-      <div class="sticky top-0 z-10 glass-toolbar
-                  flex items-center justify-between px-12 py-4 h-20">
-        <div class="flex items-center gap-8">
-          <h2 class="text-xl font-extrabold font-headline text-on-surface">Template Library</h2>
-        </div>
-        <div class="flex items-center gap-4">
-          <div class="relative hidden lg:block">
-            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2
-                         text-outline text-lg">search</span>
-            <input class="pl-10 pr-4 py-2 bg-surface-container border-none rounded-lg
-                          text-sm w-64 focus:ring-2 focus:ring-primary/20 transition-all"
-                   placeholder="Search templates…" type="text"/>
-          </div>
-        </div>
-      </div>
-
-      <!-- Templates content -->
-      <div class="px-12 py-10 max-w-7xl mx-auto">
-
-        <!-- Editorial header -->
-        <div class="flex flex-col md:flex-row justify-between items-end mb-12 gap-6">
-          <div class="max-w-2xl">
-            <div class="inline-flex items-center px-3 py-1 bg-tertiary-fixed
-                        text-on-tertiary-fixed text-[10px] font-bold tracking-widest
-                        rounded-full mb-4 uppercase">
-              Enterprise Library
-            </div>
-            <h2 class="text-5xl font-headline font-extrabold text-on-surface
-                       leading-tight tracking-tight mb-4">
-              Master Templates
-            </h2>
-            <p class="text-lg text-on-surface-variant leading-relaxed">
-              Select a verified blueprint to initiate the signing ceremony.
-              All documents are encrypted and legally binding in 40+ jurisdictions.
-            </p>
-          </div>
-          <div class="flex gap-3">
-            <button class="px-6 py-3 bg-surface-container-high text-on-surface
-                           font-semibold rounded-lg text-sm hover:bg-surface-dim transition-colors">
-              English
-            </button>
-            <button class="px-6 py-3 bg-surface-container-low text-on-surface-variant
-                           font-medium rounded-lg text-sm hover:bg-surface-container-high transition-colors">
-              മലയാളം
-            </button>
-          </div>
-        </div>
-
-        <!-- Bento grid -->
-        <div class="grid grid-cols-1 md:grid-cols-12 gap-8">
-
-          <!-- Feature card: NDA -->
-          <div class="md:col-span-8 group cursor-pointer">
-            <div class="relative bg-surface-container-lowest rounded-xl overflow-hidden
-                        shadow-ambient-sm hover:shadow-ambient transition-all duration-500
-                        h-[420px] flex flex-col">
-              <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent
-                          z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-              <div class="h-2/3 bg-surface-container-low flex items-center justify-center">
-                <span class="material-symbols-outlined text-8xl text-outline-variant/30">
-                  gavel
-                </span>
-              </div>
-              <div class="p-8 flex flex-col flex-1 justify-between">
-                <div>
-                  <div class="flex justify-between items-start mb-2">
-                    <h3 class="text-2xl font-headline font-bold text-on-surface">
-                      Mutual Non-Disclosure Agreement
-                    </h3>
-                    <span class="material-symbols-outlined text-primary-container">verified</span>
-                  </div>
-                  <p class="text-on-surface-variant text-sm">
-                    Comprehensive protection for intellectual property exchange between two legal entities.
-                  </p>
-                </div>
-                <div class="flex items-center justify-between mt-4">
-                  <div class="flex items-center gap-2">
-                    <span class="w-2 h-2 rounded-full bg-primary-container"></span>
-                    <span class="text-xs font-semibold text-primary">Standard Enterprise Ver. 4.2</span>
-                  </div>
-                  <button class="flex items-center gap-2 text-primary font-bold text-sm">
-                    Use Template
-                    <span class="material-symbols-outlined text-sm">arrow_forward</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Service agreement -->
-          <div class="md:col-span-4 group cursor-pointer">
-            <div class="bg-surface-container-lowest rounded-xl overflow-hidden
-                        shadow-ambient-sm hover:shadow-ambient transition-all duration-500
-                        h-[420px] flex flex-col">
-              <div class="h-1/2 bg-secondary-container/20 p-6 flex items-center justify-center">
-                <div class="bg-white/90 p-4 rounded-lg shadow-2xl w-3/4">
-                  <div class="space-y-2">
-                    <div class="h-2 w-1/2 bg-surface-container-highest rounded"></div>
-                    <div class="h-2 w-full bg-surface-container rounded"></div>
-                    <div class="h-2 w-3/4 bg-surface-container rounded"></div>
-                    <div class="h-8 w-full border-2 border-dashed border-primary-container/30
-                                rounded mt-4 flex items-center justify-center">
-                      <span class="text-[10px] text-primary-container font-bold">SIGN HERE</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div class="p-6 flex flex-col flex-1">
-                <h3 class="text-xl font-headline font-bold text-on-surface mb-2">
-                  Master Service Agreement
-                </h3>
-                <p class="text-on-surface-variant text-xs leading-relaxed mb-4">
-                  Baseline legal framework for B2B service delivery, milestones, and payment terms.
-                </p>
-                <div class="mt-auto space-y-3">
-                  <div class="flex gap-2">
-                    <span class="px-2 py-1 bg-surface-container text-[10px] rounded font-semibold">
-                      Service
-                    </span>
-                    <span class="px-2 py-1 bg-surface-container text-[10px] rounded font-semibold">
-                      B2B
-                    </span>
-                  </div>
-                  <button class="w-full py-2 border border-primary-container text-primary-container
-                                 text-xs font-bold rounded-lg
-                                 hover:bg-primary-container hover:text-white transition-all">
-                    Select Template
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Second row -->
-          <!-- Office Memo -->
-          <div class="md:col-span-4 group cursor-pointer">
-            <div class="bg-surface-container-low rounded-xl p-6
-                        hover:bg-surface-container-high transition-colors
-                        h-[280px] flex flex-col">
-              <div class="w-12 h-12 rounded-xl bg-primary-container flex items-center
-                          justify-center mb-6 shadow-[0_4px_12px_rgba(26,115,232,.2)]">
-                <span class="material-symbols-outlined text-white">description</span>
-              </div>
-              <h3 class="text-lg font-headline font-bold text-on-surface mb-2">
-                Executive Office Memo
-              </h3>
-              <p class="text-on-surface-variant text-xs mb-6">
-                Internal directive for policy changes and official organization announcements.
-              </p>
-              <div class="mt-auto flex items-center justify-between">
-                <span class="text-[10px] font-bold text-on-surface-variant/60
-                             tracking-widest uppercase">Intra-Org</span>
-                <span class="material-symbols-outlined text-primary-container
-                             group-hover:translate-x-1 transition-transform">east</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Malayalam support -->
-          <div class="md:col-span-4 group cursor-pointer">
-            <div class="bg-[#191c1e] text-white rounded-xl p-8 h-[280px]
-                        flex flex-col justify-between relative overflow-hidden">
-              <div class="absolute -right-10 -bottom-10 opacity-10">
-                <span class="text-9xl font-headline font-black">ല</span>
-              </div>
-              <div>
-                <h3 class="text-lg font-headline font-bold mb-2">Multilingual Compliance</h3>
-                <p class="text-white/70 text-xs leading-relaxed">
-                  Local language support for contracts. Ensure clarity in
-                  Malayalam legally-binding documents.
-                </p>
-              </div>
-              <button class="bg-primary-container text-white text-xs font-bold
-                             py-2 px-4 rounded-lg w-fit hover:bg-primary transition-colors">
-                Explore Malayalam Templates
-              </button>
-            </div>
-          </div>
-
-          <!-- Employment offer -->
-          <div class="md:col-span-4 group cursor-pointer">
-            <div class="bg-surface-container-lowest rounded-xl p-6 shadow-ambient-sm
-                        hover:shadow-ambient transition-all h-[280px] flex flex-col">
-              <div class="flex justify-between items-start mb-4">
-                <div class="flex -space-x-2">
-                  <div class="w-8 h-8 rounded-full border-2 border-white bg-secondary-fixed-dim"></div>
-                  <div class="w-8 h-8 rounded-full border-2 border-white bg-tertiary-fixed-dim"></div>
-                </div>
-                <div class="px-2 py-1 bg-surface-container-high rounded text-[10px] font-bold">HR</div>
-              </div>
-              <h3 class="text-lg font-headline font-bold text-on-surface mb-1">Employment Offer</h3>
-              <p class="text-on-surface-variant text-xs mb-4">
-                Onboarding package including salary details and confidentiality clauses.
-              </p>
-              <div class="mt-auto pt-4 border-t border-outline-variant/10
-                          flex items-center justify-between">
-                <span class="text-xs text-on-surface-variant">Last used 2h ago</span>
-                <span class="material-symbols-outlined text-primary text-lg">add_circle</span>
-              </div>
-            </div>
-          </div>
-        </div>
+        <!-- /bento grid -->
 
         <!-- Footer -->
-        <footer class="mt-20 py-10 border-t border-outline-variant/20
-                       flex flex-col md:flex-row justify-between items-center gap-6">
-          <div class="flex items-center gap-4">
-            <div class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center">
-              <span class="material-symbols-outlined text-primary-container">verified_user</span>
-            </div>
-            <div>
-              <p class="text-sm font-bold font-headline">Sovereign Encryption Active</p>
-              <p class="text-xs text-on-surface-variant">
-                All templates are hashed with SHA-256 upon generation.
-              </p>
-            </div>
+        <footer class="mt-12 flex justify-between items-center
+                       text-[11px] text-on-surface-variant/50 font-bold
+                       uppercase tracking-widest
+                       border-t border-outline-variant/15 pt-6">
+          <div class="flex gap-8">
+            <span>Active Sessions: 01</span>
+            <span>Last Login: Today, IST</span>
           </div>
-          <div class="flex gap-8 text-xs font-medium text-on-surface-variant">
-            <a class="hover:text-primary transition-colors" href="#">Legal Framework</a>
-            <a class="hover:text-primary transition-colors" href="#">Security Specs</a>
-            <a class="hover:text-primary transition-colors" href="#">Help Center</a>
+          <div class="flex gap-5">
+            <a class="hover:text-primary transition-colors cursor-pointer">Privacy Policy</a>
+            <a class="hover:text-primary transition-colors cursor-pointer">Terms of Use</a>
           </div>
         </footer>
+
       </div>
+      <!-- /archive content -->
+
     </div>
-    <!-- /tab-templates -->
+    <!-- /tab-archive -->
 
   </div>
   <!-- /tab panels container -->
@@ -1069,11 +1185,15 @@
 
 
 <!-- ════════════════════════════════════════════════════════════
-     PIN SCREEN  (secure_pin_overlay design)
+     PIN SCREEN
+     FIX #3: #pin-input white background + clear border are
+     enforced via `#pin-input { ... !important }` in <style>
+     above — no inline style attributes needed here.
 ════════════════════════════════════════════════════════════ -->
 <div id="pin-screen"
      class="fixed inset-0 z-50 flex items-center justify-center
-            bg-on-background/10 backdrop-blur-md transition-opacity duration-500">
+            bg-on-background/10 backdrop-blur-md
+            transition-opacity duration-500">
 
   <!-- Ambient background blobs -->
   <div class="fixed inset-0 -z-10 pointer-events-none overflow-hidden">
@@ -1083,23 +1203,28 @@
                 rounded-full blur-[100px] translate-y-1/3 -translate-x-1/4"></div>
   </div>
 
-  <!-- PIN card -->
-  <div class="glass-panel max-w-md w-full mx-4 p-10 rounded-[32px]
+  <!-- PIN Card -->
+  <div class="pin-card glass-panel max-w-md w-full mx-4 p-10 rounded-[32px]
               flex flex-col items-center text-center
-              shadow-[0_12px_40px_rgba(25,28,30,0.06)] border border-white/40">
+              shadow-[0_24px_60px_rgba(25,28,30,0.10)]
+              border border-white/50">
 
-    <!-- Logo + Security badge -->
+    <!-- Logo + Title -->
     <div class="mb-8 flex flex-col items-center gap-4">
-      <!-- App logo / icon -->
-      <div class="mb-1">
+      <div class="mb-1 relative">
         <img src="logo192.png" alt="Ink Sign Studio"
-             class="w-14 h-14 rounded-2xl object-contain shadow-ambient-sm"
-             onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/>
-        <div class="w-14 h-14 rounded-2xl bg-tertiary-fixed items-center
-                    justify-center shadow-sm hidden">
+             class="w-16 h-16 rounded-2xl object-contain shadow-ambient"
+             onerror="this.style.display='none';this.nextElementSibling.style.removeProperty('display')"/>
+        <!-- Fallback icon shown only if logo image fails to load -->
+        <div class="w-16 h-16 rounded-2xl bg-tertiary-fixed flex items-center
+                    justify-center shadow-ambient-sm"
+             style="display:none">
           <span class="material-symbols-outlined text-on-tertiary-fixed text-3xl"
                 style="font-variation-settings:'FILL' 1">lock</span>
         </div>
+        <!-- Subtle glow ring around logo -->
+        <div class="absolute -inset-1.5 rounded-[20px] border-2 border-primary/15
+                    pointer-events-none"></div>
       </div>
 
       <div class="space-y-1">
@@ -1115,7 +1240,8 @@
 
     <!-- PIN dots + input -->
     <div class="w-full space-y-8">
-      <!-- Dots -->
+
+      <!-- Indicator dots — updated live by script.js on 'input' event -->
       <div class="flex justify-center gap-6" id="dot-container">
         <div class="pin-dot bg-surface-container-highest border border-outline-variant/30"></div>
         <div class="pin-dot bg-surface-container-highest border border-outline-variant/30"></div>
@@ -1123,53 +1249,56 @@
         <div class="pin-dot bg-surface-container-highest border border-outline-variant/30"></div>
       </div>
 
-      <!-- Hidden number input -->
+      <!-- PIN input — white background + visible border via #pin-input CSS rule above -->
       <div class="relative">
         <input id="pin-input"
-               class="w-full text-center bg-surface-container-low border-none rounded-xl
-                      py-6 text-4xl font-headline tracking-[1.5em]
-                      focus:ring-2 focus:ring-primary/20 transition-all
-                      placeholder:text-outline-variant/40 placeholder:tracking-[0.5em]
-                      text-primary"
-               maxlength="4" type="password" placeholder="·&nbsp;·&nbsp;·&nbsp;·" />
+               class="w-full text-center rounded-2xl py-5
+                      text-4xl font-headline tracking-[1.5em]
+                      text-primary font-bold transition-all"
+               maxlength="4"
+               type="password"
+               placeholder="· · · ·"
+               inputmode="numeric"
+               autocomplete="off" />
         <p class="mt-3 text-[10px] uppercase tracking-widest text-outline font-bold">
           Secure Session Active
         </p>
       </div>
 
-      <!-- Verify button -->
+      <!-- Verify button + Forgot PIN / Reset App -->
       <div class="space-y-4 pt-1">
         <button id="verify-btn"
-                class="bg-gradient-ink w-full py-4 rounded-xl text-on-primary
+                class="bg-gradient-ink w-full py-4 rounded-2xl text-on-primary
                        font-headline font-bold text-lg
-                       shadow-lg shadow-primary/20
+                       shadow-lg shadow-primary/25
                        hover:opacity-95 active:scale-[0.98] transition-all
                        flex flex-col items-center justify-center group">
           <span id="btn-text">Verify PIN</span>
-          <span class="text-[10px] font-medium opacity-80
+          <span class="text-[10px] font-medium opacity-75
                        group-hover:opacity-100 transition-opacity">
             പിൻ പരിശോധിക്കുക
           </span>
         </button>
 
-        <!-- Forgot / Reset -->
+        <!-- Forgot PIN / Reset App -->
         <div class="flex flex-col items-center gap-1 pt-2">
-          <button id="btn-reset-app"
+          <button id="btn-forgot-pin"
                   class="text-primary font-label font-semibold text-sm
                          hover:underline decoration-2 underline-offset-4 transition-all">
             Forgot PIN / Reset App
           </button>
-          <span class="text-[10px] text-on-surface-variant font-medium">
+          <span class="text-[10px] text-on-surface-variant/60 font-medium">
             പിൻ മറന്നോ? / ആപ്പ് റീസെറ്റ്
           </span>
         </div>
       </div>
     </div>
 
-    <!-- Security identity chip -->
-    <div class="mt-10 flex items-center gap-2 bg-surface-container-high/50
+    <!-- Security Identity Chip -->
+    <div class="mt-10 flex items-center gap-2 bg-surface-container-high/60
                 px-4 py-2 rounded-full">
-      <span class="material-symbols-outlined text-sm text-on-surface-variant">shield_check</span>
+      <span class="material-symbols-outlined text-sm text-on-surface-variant"
+            style="font-variation-settings:'FILL' 1">shield</span>
       <span class="text-[11px] font-bold text-on-surface-variant/70
                    uppercase tracking-widest font-label">
         Ink Sign Studio Security
@@ -1177,9 +1306,9 @@
     </div>
   </div>
 
-  <!-- Decorative watermark -->
-  <div class="absolute bottom-12 left-1/2 -translate-x-1/2 text-center
-              pointer-events-none opacity-[0.04]">
+  <!-- Decorative ENCRYPTED watermark -->
+  <div class="absolute bottom-10 left-1/2 -translate-x-1/2 text-center
+              pointer-events-none opacity-[0.035]">
     <p class="font-headline font-extrabold text-5xl text-on-background uppercase
               tracking-[2em] translate-x-[1em]">ENCRYPTED</p>
   </div>
@@ -1187,28 +1316,39 @@
 <!-- /pin-screen -->
 
 
-<!-- Hidden multi-file PDF picker -->
+<!-- Hidden multi-file PDF picker — script.js binds to this via #pdf-file-input -->
 <input id="pdf-file-input" type="file" accept="application/pdf" multiple style="display:none" />
 
-<!-- Global loading overlay -->
+<!-- Global loading overlay — script.js toggles the .active class -->
 <div id="loading-overlay" role="status" aria-live="polite">
   <div class="lo-spinner"></div>
   <p id="loading-text" class="lo-text">Please wait…</p>
 </div>
 
-<!-- ── SPA Tab Switching ──────────────────────────────────── -->
+
+<!-- ════════════════════════════════════════════════════════════
+     SPA TAB SWITCHING
+     Runs immediately (not deferred) so nav tabs respond before
+     script.js DOMContentLoaded fires. script.js re-runs
+     switchTab('dashboard') on load, which is harmless.
+════════════════════════════════════════════════════════════ -->
 <script>
   (function () {
-    const tabs   = document.querySelectorAll('.nav-tab');
-    const panels = document.querySelectorAll('.tab-panel');
-
-    tabs.forEach(tab => {
-      tab.addEventListener('click', () => {
-        const target = tab.dataset.tab;
-        tabs.forEach(t => t.classList.toggle('active', t.dataset.tab === target));
-        panels.forEach(p => p.classList.toggle('active', p.id === 'tab-' + target));
+    function switchTab(targetName) {
+      document.querySelectorAll('.nav-tab').forEach(function (t) {
+        t.classList.toggle('active', t.dataset.tab === targetName);
       });
+      document.querySelectorAll('.tab-panel').forEach(function (p) {
+        p.classList.toggle('active', p.id === 'tab-' + targetName);
+      });
+    }
+
+    document.querySelectorAll('.nav-tab').forEach(function (tab) {
+      tab.addEventListener('click', function () { switchTab(tab.dataset.tab); });
     });
+
+    // Default: Dashboard visible on page load
+    switchTab('dashboard');
   })();
 </script>
 
