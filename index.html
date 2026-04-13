@@ -940,6 +940,11 @@
         <!-- Bento Grid -->
         <div class="grid grid-cols-12 gap-5">
 
+        <!-- Document rows — dynamically rebuilt from iss_archive_history by script.js.
+             display:contents makes this wrapper invisible to the CSS grid so its
+             children participate in the parent grid exactly as if unwrapped. -->
+        <div id="archive-doc-list" style="display:contents">
+
           <!-- Document row 1 -->
           <div class="col-span-12 doc-row gap-5">
             <div class="shrink-0 bg-blue-50 rounded-xl flex items-center
@@ -1092,6 +1097,8 @@
               </button>
             </div>
           </div>
+          <!-- /row 4, /archive-doc-list -->
+        </div>
 
           <!-- Security Insight Card (dark bento) -->
           <div class="col-span-8 p-8 bg-slate-900 rounded-3xl relative overflow-hidden group">
