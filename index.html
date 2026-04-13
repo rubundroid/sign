@@ -11,7 +11,67 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
-<link rel="stylesheet" href="style.css">
+ <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "surface-container-high":    "#e6e8ea",
+            "on-surface-variant":        "#414754",
+            "outline-variant":           "#c1c6d6",
+            "outline":                   "#727785",
+            "primary":                   "#005bbf",
+            "primary-container":         "#1a73e8",
+            "on-primary":                "#ffffff",
+            "on-primary-container":      "#ffffff",
+            "surface-container-lowest":  "#ffffff",
+            "surface-container-low":     "#f2f4f6",
+            "surface-container-highest": "#e0e3e5",
+            "surface-container":         "#eceef0",
+            "surface-bright":            "#f8f9fb",
+            "surface-variant":           "#e0e3e5",
+            "surface":                   "#f8f9fb",
+            "on-surface":                "#191c1e",
+            "on-background":             "#191c1e",
+            "tertiary-fixed":            "#ffdbcb",
+            "tertiary-fixed-dim":        "#ffb691",
+            "on-tertiary-fixed":         "#341100",
+            "on-tertiary-fixed-variant": "#783100",
+            "secondary-container":       "#b2c9fe",
+            "secondary-fixed-dim":       "#afc7fb",
+            "inverse-surface":           "#2d3133",
+            "inverse-on-surface":        "#eff1f3",
+            "error":                     "#ba1a1a",
+            "error-container":           "#ffdad6",
+            "surface-dim":               "#d8dadc",
+            "secondary":                 "#475e8c",
+            "tertiary":                  "#9e4300",
+          },
+          fontFamily: {
+            headline: ["Manrope"],
+            body:     ["Inter"],
+            label:    ["Inter"],
+          },
+          borderRadius: {
+            DEFAULT: "0.25rem",
+            lg:      "0.5rem",
+            xl:      "0.75rem",
+            "2xl":   "1rem",
+            "3xl":   "1.5rem",
+            full:    "9999px",
+          },
+          boxShadow: {
+            "ambient":    "0 12px 40px rgba(25,28,30,0.06)",
+            "ambient-md": "0 8px 24px rgba(25,28,30,0.06)",
+            "ambient-sm": "0 4px 12px rgba(25,28,30,0.03)",
+          },
+        },
+      },
+    };
+  </script>
 
   <style>
     /* ── Base ──────────────────────────────────────────────── */
