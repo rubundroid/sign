@@ -1,27 +1,29 @@
 <!doctype html>
 <html class="light" lang="en">
 <head>
-  
-    <meta property="og:title" content="Ink Sign Studio" />
-    <meta
-      property="og:description"
-      content="ഇനി പിഡിഎഫ്  പ്രിന്റ് ചെയ്തു ഒപ്പിട്ട് വീണ്ടും  സ്കാന് ചെയ്യുന്ന കാര്യം മറന്നന്നേക്കാം - ഡിജിറ്റൽ കൈയ്യൊപ്പ് "
-    />
-    <meta
-      property="og:image"
-      content="https://rubundroid.github.io/sign/logo512.png"
-    />
-    <meta property="og:image:type" content="image/png" />
-    <meta property="og:image:width" content="512" />
-    <meta property="og:image:height" content="512" />
-    <meta property="og:url" content="https:///rubundroid.github.io/sign" />
-    <meta property="og:type" content="website" />
-
-    <link rel="manifest" href="manifest.json" />
-  
   <meta charset="utf-8" />
   <meta content="width=device-width, initial-scale=1.0" name="viewport" />
   <title>Ink Sign Studio</title>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       Social Media / Open Graph preview tags
+       These populate the WhatsApp / Facebook / Telegram / LinkedIn
+       link-preview card when the URL is shared.
+  ════════════════════════════════════════════════════════════════ -->
+  <meta property="og:type"        content="website" />
+  <meta property="og:title"       content="Ink Sign Studio — Secure PDF Signer" />
+  <meta property="og:description" content="Upload, organise and digitally stamp PDFs with your Ink Signature, Designation Seal or Office Seal — entirely in the browser. PIN-protected and offline-capable." />
+  <meta property="og:image"       content="logo192.png" />
+  <meta property="og:image:width"  content="192" />
+  <meta property="og:image:height" content="192" />
+  <meta property="og:site_name"   content="Ink Sign Studio" />
+  <!-- Twitter / X card (also used by WhatsApp as a fallback) -->
+  <meta name="twitter:card"        content="summary" />
+  <meta name="twitter:title"       content="Ink Sign Studio — Secure PDF Signer" />
+  <meta name="twitter:description" content="Browser-based PDF signing with Ink Signature, Designation Seal &amp; Office Seal. No server uploads. PIN-protected." />
+  <meta name="twitter:image"       content="logo192.png" />
+  <!-- Standard SEO description -->
+  <meta name="description" content="Ink Sign Studio — upload, merge and stamp PDFs securely in your browser with Ink Signatures and official seals." />
 
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
@@ -29,7 +31,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
- <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 
   <script id="tailwind-config">
     tailwind.config = {
@@ -399,11 +401,13 @@
     }
 
     /* ══ ARCHIVE SEARCH INPUT ════════════════════════════════ */
+    /* left-padding increased to 52px so the 24-px search icon
+       (positioned at left:14px) does not overlap the placeholder text */
     .archive-search {
       background: #f2f4f6;
       border: none;
       border-radius: 12px;
-      padding: 10px 16px 10px 42px;
+      padding: 10px 16px 10px 52px;
       font-size: 14px;
       font-family: 'Inter', sans-serif;
       color: #191c1e;
@@ -467,6 +471,62 @@
     /* Archive panel scrollbar */
     #tab-archive::-webkit-scrollbar { width: 5px; }
     #tab-archive::-webkit-scrollbar-thumb { background: rgba(193,198,214,.6); border-radius: 4px; }
+
+    /* ════════════════════════════════════════════════════════════
+       MOBILE RESPONSIVE SIDEBAR
+       ─────────────────────────────────────────────────────────
+       On screens narrower than md (768px) the sidebar becomes a
+       fixed overlay that slides in from the left.
+       script.js §MOBILE toggles the `.sidebar-open` class.
+       On md+ the sidebar is in normal document flow; the fixed
+       positioning and transforms are not applied there.
+    ════════════════════════════════════════════════════════════ */
+    @media (max-width: 767px) {
+      /* Sidebar: fixed overlay, hidden off-screen to the left by default */
+      #app-sidebar {
+        position: fixed !important;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        z-index: 50;
+        height: 100dvh !important;
+        transform: translateX(-100%);
+        transition: transform 0.28s cubic-bezier(0.4,0,0.2,1);
+        box-shadow: 4px 0 24px rgba(25,28,30,0.14);
+      }
+      /* Slide into view when .sidebar-open is set by script.js */
+      #app-sidebar.sidebar-open {
+        transform: translateX(0);
+      }
+      /* Main canvas area stacks vertically on mobile */
+      #tab-dashboard.active {
+        flex-direction: column;
+        overflow: auto;
+      }
+      /* PDF placeholder can be narrower on mobile */
+      #pdf-placeholder {
+        width: min(90vw, 420px);
+      }
+      /* Archive search full-width on mobile */
+      .archive-search { width: 100%; max-width: 260px; }
+    }
+
+    /* Semi-transparent backdrop behind the mobile sidebar */
+    #mobile-sidebar-backdrop {
+      display: none;
+    }
+    @media (max-width: 767px) {
+      #mobile-sidebar-backdrop {
+        display: block;
+        position: fixed;
+        inset: 0;
+        z-index: 49;
+        background: rgba(25,28,30,0.45);
+        backdrop-filter: blur(2px);
+        -webkit-backdrop-filter: blur(2px);
+        transition: opacity 0.25s ease;
+      }
+    }
   </style>
 </head>
 
@@ -488,21 +548,30 @@
          • Security "shield" icon button removed from the right.
   ══════════════════════════════════════════════════════════════ -->
   <header class="w-full sticky top-0 z-40 bg-surface-bright
-                 flex items-center justify-between px-8 h-16
+                 flex items-center justify-between px-4 md:px-8 h-14 md:h-16
                  shadow-[0_1px_0_rgba(193,198,214,0.35)]">
 
-    <!-- Left: Brand + Nav Tabs -->
-    <div class="flex items-center gap-8">
+    <!-- Left: Hamburger (mobile) + Brand + Nav Tabs -->
+    <div class="flex items-center gap-3 md:gap-8">
+
+      <!-- Hamburger — only visible on mobile (hidden on md+) -->
+      <button id="btn-mobile-menu"
+              aria-label="Open tools sidebar"
+              class="md:hidden flex items-center justify-center w-9 h-9 rounded-lg
+                     text-on-surface-variant hover:bg-surface-container-high transition-colors">
+        <span class="material-symbols-outlined text-xl">menu</span>
+      </button>
+
       <!-- Logo / Brand -->
       <a href="#" class="flex items-center gap-2.5 shrink-0">
         <img src="logo192.png" alt="Ink Sign Studio"
-             class="w-8 h-8 rounded-lg object-contain"
+             class="w-7 h-7 md:w-8 md:h-8 rounded-lg object-contain"
              onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/>
-        <div class="w-8 h-8 rounded-lg bg-primary items-center justify-center text-white"
+        <div class="w-7 h-7 md:w-8 md:h-8 rounded-lg bg-primary items-center justify-center text-white"
              style="display:none">
           <span class="material-symbols-outlined text-base">history_edu</span>
         </div>
-        <span class="font-headline font-extrabold text-lg tracking-tight text-on-surface">
+        <span class="font-headline font-extrabold text-base md:text-lg tracking-tight text-on-surface">
           Ink Sign Studio
         </span>
       </a>
@@ -514,7 +583,13 @@
       </nav>
     </div>
 
-    <!-- Right: Actions — shield icon removed per Fix #2 -->
+    <!-- Mobile bottom nav tabs (shown only on small screens, in place of the sidebar nav) -->
+    <nav class="flex md:hidden items-center gap-4 absolute left-1/2 -translate-x-1/2">
+      <button class="nav-tab active text-sm" data-tab="dashboard">Dashboard</button>
+      <button class="nav-tab text-sm"        data-tab="archive">Archive</button>
+    </nav>
+
+    <!-- Right: Actions -->
     <div class="flex items-center gap-2">
       <!-- E-Sign Active status chip -->
       <div class="hidden sm:flex items-center gap-1.5 bg-tertiary-fixed/60
@@ -527,12 +602,12 @@
       </div>
       <!-- Reset App button -->
       <button id="btn-reset-app"
-              title="Reset App — clears PIN and all saved stamps"
-              class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg
+              title="Reset App — clears PIN, stamps and archive history"
+              class="flex items-center gap-1.5 px-2 md:px-3 py-1.5 rounded-lg
                      text-[11px] font-bold text-red-500
                      hover:bg-red-50 transition-all">
         <span class="material-symbols-outlined text-sm">delete_sweep</span>
-        Reset
+        <span class="hidden sm:inline">Reset</span>
       </button>
     </div>
   </header>
@@ -545,21 +620,21 @@
   ══════════════════════════════════════════════════════════════ -->
   <div class="flex flex-1 overflow-hidden relative">
 
+    <!-- Mobile sidebar backdrop — tapping closes the sidebar on small screens -->
+    <div id="mobile-sidebar-backdrop"
+         class="opacity-0 pointer-events-none"></div>
+
     <!-- ══════════════════════════════════════════════════════
          TAB 1 — DASHBOARD
-         FIX #1 & #4:
-           • .tab-panel.active → display:flex, flex-direction:column
-           • #tab-dashboard.active → flex-direction:row, overflow:hidden
-             This lets the sidebar and the <main> sit side-by-side.
-           • <main> uses overflow-y:auto so it scrolls independently.
-           • script.js controls organizer vs. signing canvas purely
-             through element .style.display assignments — no class
-             toggle is needed and none is used here.
     ══════════════════════════════════════════════════════════ -->
     <div id="tab-dashboard" class="tab-panel active w-full">
 
       <!-- ── SIDEBAR ─────────────────────────────────────────── -->
-      <aside class="h-full w-72 shrink-0 bg-surface-container-low
+      <!-- id="app-sidebar" is used by script.js §MOBILE toggle.
+           On md+ it sits in normal document flow (w-72, shrink-0).
+           On mobile it becomes a fixed overlay via the CSS media query. -->
+      <aside id="app-sidebar"
+             class="h-full w-72 shrink-0 bg-surface-container-low
                     flex flex-col p-5 gap-y-3 overflow-y-auto
                     shadow-[1px_0_0_rgba(193,198,214,0.25)]">
 
@@ -802,7 +877,7 @@
            toggle is required and the CSS does not interfere.
       ──────────────────────────────────────────────────────────────── -->
       <main class="flex-1 bg-surface-container-high overflow-y-auto
-                   flex flex-col items-center justify-start gap-4 p-8
+                   flex flex-col items-center justify-start gap-4 p-4 md:p-8
                    signature-canvas-bg">
 
         <!-- ─── Placeholder (shown until first upload) ─── -->
@@ -896,31 +971,40 @@
 
 
     <!-- ══════════════════════════════════════════════════════
-         TAB 2 — ARCHIVE  (Document Archive, Stitch design)
+         TAB 2 — ARCHIVE  (Live history from localStorage)
     ══════════════════════════════════════════════════════════ -->
     <div id="tab-archive" class="tab-panel w-full bg-surface">
 
-      <!-- Archive sticky header -->
-      <div class="sticky top-0 z-20 glass-toolbar px-10 py-4
-                  flex items-center justify-between
+      <!-- Archive sticky header (responsive) -->
+      <div class="sticky top-0 z-20 glass-toolbar
+                  px-4 sm:px-6 md:px-10 py-3 md:py-4
+                  flex flex-col sm:flex-row items-start sm:items-center
+                  justify-between gap-3 sm:gap-0
                   shadow-[0_1px_0_rgba(193,198,214,0.3)]">
         <div>
-          <h2 class="font-headline font-extrabold text-xl text-on-surface">Document Archive</h2>
+          <h2 class="font-headline font-extrabold text-lg md:text-xl text-on-surface">Document Archive</h2>
           <p class="text-xs text-on-surface-variant font-medium mt-0.5">രേഖകളുടെ ശേഖരം</p>
         </div>
-        <div class="flex items-center gap-5">
-          <!-- Search box -->
-          <div class="relative">
+        <div class="flex items-center gap-3 w-full sm:w-auto">
+          <!-- Search box — search icon fixed at left:14px; left-pad is 52px (matches CSS) -->
+          <div class="relative flex-1 sm:flex-none">
             <span class="absolute inset-y-0 left-3.5 flex items-center
                          text-outline pointer-events-none">
               <span class="material-symbols-outlined text-lg">search</span>
             </span>
-            <input class="archive-search"
-                   placeholder="Search documents… / രേഖകൾ തിരയുക…"
-                   type="text"/>
+            <input id="archive-search-input"
+                   class="archive-search w-full sm:w-auto"
+                   placeholder="Search documents…"
+                   type="text"
+                   oninput="
+                     const q = this.value.trim().toLowerCase();
+                     document.querySelectorAll('#archive-doc-list .doc-row[data-filename]').forEach(r => {
+                       r.style.display = r.dataset.filename.includes(q) ? '' : 'none';
+                     });
+                   "/>
           </div>
           <!-- View toggles -->
-          <div class="flex gap-2">
+          <div class="flex gap-2 shrink-0">
             <button class="p-2 bg-surface-container-low rounded-lg text-on-surface-variant
                            hover:bg-surface-container-high transition-colors">
               <span class="material-symbols-outlined text-lg">grid_view</span>
@@ -933,260 +1017,35 @@
       </div>
 
       <!-- Archive content -->
-      <div class="px-10 py-8 max-w-6xl mx-auto w-full">
+      <div class="px-4 sm:px-6 md:px-10 py-6 md:py-8 max-w-5xl mx-auto w-full">
 
         <!-- Filter chips -->
-        <div class="flex items-center gap-3 mb-8">
+        <div class="flex flex-wrap items-center gap-2 md:gap-3 mb-6 md:mb-8">
           <button class="stat-chip bg-primary text-white shadow-ambient-sm">All Documents</button>
           <button class="stat-chip bg-surface-container text-on-surface-variant
                          hover:bg-surface-container-high transition-colors cursor-pointer">
             <span class="w-2 h-2 bg-green-500 rounded-full"></span>
             Signed
           </button>
-          <button class="stat-chip bg-surface-container text-on-surface-variant
-                         hover:bg-surface-container-high transition-colors cursor-pointer">
-            <span class="w-2 h-2 bg-orange-400 rounded-full animate-pulse"></span>
-            Pending
-          </button>
-          <button class="stat-chip bg-surface-container text-on-surface-variant
-                         hover:bg-surface-container-high transition-colors cursor-pointer">
-            <span class="material-symbols-outlined text-sm">folder</span>
-            Drafts
-          </button>
         </div>
 
-        <!-- Bento Grid -->
-        <div class="grid grid-cols-12 gap-5">
-
-        <!-- Document rows — dynamically rebuilt from iss_archive_history by script.js.
-             display:contents makes this wrapper invisible to the CSS grid so its
-             children participate in the parent grid exactly as if unwrapped. -->
-        <div id="archive-doc-list" style="display:contents">
-
-          <!-- Document row 1 -->
-          <div class="col-span-12 doc-row gap-5">
-            <div class="shrink-0 bg-blue-50 rounded-xl flex items-center
-                        justify-center text-primary-container"
-                 style="width:52px;height:52px">
-              <span class="material-symbols-outlined text-2xl"
-                    style="font-variation-settings:'FILL' 1">description</span>
-            </div>
-            <div class="flex-1 min-w-0">
-              <h4 class="font-headline font-bold text-on-surface text-sm leading-tight truncate">
-                Investment_Agreement_v4.pdf
-              </h4>
-              <p class="text-xs text-on-surface-variant/70 mt-0.5">നിക്ഷേപ കരാർ · 2.4 MB</p>
-            </div>
-            <div class="px-7 border-x border-outline-variant/15 flex flex-col gap-0.5 shrink-0">
-              <span class="text-[10px] text-on-surface-variant/60 font-bold uppercase tracking-wider">Signed Date</span>
-              <span class="text-sm font-headline font-semibold text-on-surface">Oct 24, 2023</span>
-            </div>
-            <div class="px-6 flex items-center shrink-0">
-              <span class="stat-chip bg-green-50 text-green-700">
-                <span class="w-1.5 h-1.5 bg-green-500 rounded-full"></span>
-                Signed / ഒപ്പിട്ടു
-              </span>
-            </div>
-            <div class="flex gap-1.5 ml-auto shrink-0">
-              <button class="w-9 h-9 flex items-center justify-center text-on-surface-variant
-                             hover:text-primary hover:bg-surface-container-high
-                             rounded-lg transition-colors">
-                <span class="material-symbols-outlined text-lg">download</span>
-              </button>
-              <button class="w-9 h-9 flex items-center justify-center text-on-surface-variant
-                             hover:text-primary hover:bg-surface-container-high
-                             rounded-lg transition-colors">
-                <span class="material-symbols-outlined text-lg">more_vert</span>
-              </button>
-            </div>
-          </div>
-
-          <!-- Document row 2 -->
-          <div class="col-span-12 doc-row gap-5">
-            <div class="shrink-0 bg-orange-50 rounded-xl flex items-center
-                        justify-center text-orange-500"
-                 style="width:52px;height:52px">
-              <span class="material-symbols-outlined text-2xl"
-                    style="font-variation-settings:'FILL' 1">history_edu</span>
-            </div>
-            <div class="flex-1 min-w-0">
-              <h4 class="font-headline font-bold text-on-surface text-sm leading-tight truncate">
-                Property_Lease_Draft.pdf
-              </h4>
-              <p class="text-xs text-on-surface-variant/70 mt-0.5">വാടക കരാർ · 1.1 MB</p>
-            </div>
-            <div class="px-7 border-x border-outline-variant/15 flex flex-col gap-0.5 shrink-0">
-              <span class="text-[10px] text-on-surface-variant/60 font-bold uppercase tracking-wider">Request Date</span>
-              <span class="text-sm font-headline font-semibold text-on-surface">Oct 27, 2023</span>
-            </div>
-            <div class="px-6 flex items-center shrink-0">
-              <span class="stat-chip bg-orange-50 text-orange-700">
-                <span class="w-1.5 h-1.5 bg-orange-400 rounded-full animate-pulse"></span>
-                Pending / ബാക്കിയുണ്ട്
-              </span>
-            </div>
-            <div class="flex gap-1.5 ml-auto shrink-0">
-              <button class="px-4 py-1.5 bg-primary-container/10 text-primary font-bold
-                             text-xs rounded-lg hover:bg-primary-container/20 transition-colors">
-                Action Required
-              </button>
-              <button class="w-9 h-9 flex items-center justify-center text-on-surface-variant
-                             hover:text-primary hover:bg-surface-container-high
-                             rounded-lg transition-colors">
-                <span class="material-symbols-outlined text-lg">more_vert</span>
-              </button>
-            </div>
-          </div>
-
-          <!-- Document row 3 -->
-          <div class="col-span-12 doc-row gap-5">
-            <div class="shrink-0 bg-purple-50 rounded-xl flex items-center
-                        justify-center text-purple-500"
-                 style="width:52px;height:52px">
-              <span class="material-symbols-outlined text-2xl"
-                    style="font-variation-settings:'FILL' 1">article</span>
-            </div>
-            <div class="flex-1 min-w-0">
-              <h4 class="font-headline font-bold text-on-surface text-sm leading-tight truncate">
-                NDA_Confidential_Global.pdf
-              </h4>
-              <p class="text-xs text-on-surface-variant/70 mt-0.5">രഹസ്യരേഖ · 850 KB</p>
-            </div>
-            <div class="px-7 border-x border-outline-variant/15 flex flex-col gap-0.5 shrink-0">
-              <span class="text-[10px] text-on-surface-variant/60 font-bold uppercase tracking-wider">Signed Date</span>
-              <span class="text-sm font-headline font-semibold text-on-surface">Oct 21, 2023</span>
-            </div>
-            <div class="px-6 flex items-center shrink-0">
-              <span class="stat-chip bg-green-50 text-green-700">
-                <span class="w-1.5 h-1.5 bg-green-500 rounded-full"></span>
-                Signed / ഒപ്പിട്ടു
-              </span>
-            </div>
-            <div class="flex gap-1.5 ml-auto shrink-0">
-              <button class="w-9 h-9 flex items-center justify-center text-on-surface-variant
-                             hover:text-primary hover:bg-surface-container-high
-                             rounded-lg transition-colors">
-                <span class="material-symbols-outlined text-lg">download</span>
-              </button>
-              <button class="w-9 h-9 flex items-center justify-center text-on-surface-variant
-                             hover:text-primary hover:bg-surface-container-high
-                             rounded-lg transition-colors">
-                <span class="material-symbols-outlined text-lg">more_vert</span>
-              </button>
-            </div>
-          </div>
-
-          <!-- Document row 4 -->
-          <div class="col-span-12 doc-row gap-5">
-            <div class="shrink-0 bg-sky-50 rounded-xl flex items-center
-                        justify-center text-sky-500"
-                 style="width:52px;height:52px">
-              <span class="material-symbols-outlined text-2xl"
-                    style="font-variation-settings:'FILL' 1">receipt_long</span>
-            </div>
-            <div class="flex-1 min-w-0">
-              <h4 class="font-headline font-bold text-on-surface text-sm leading-tight truncate">
-                Service_Agreement_eOffice_2024.pdf
-              </h4>
-              <p class="text-xs text-on-surface-variant/70 mt-0.5">
-                സേവന കരാർ · 3.2 MB · eOffice flattened
-              </p>
-            </div>
-            <div class="px-7 border-x border-outline-variant/15 flex flex-col gap-0.5 shrink-0">
-              <span class="text-[10px] text-on-surface-variant/60 font-bold uppercase tracking-wider">Signed Date</span>
-              <span class="text-sm font-headline font-semibold text-on-surface">Nov 02, 2023</span>
-            </div>
-            <div class="px-6 flex items-center shrink-0">
-              <span class="stat-chip bg-green-50 text-green-700">
-                <span class="w-1.5 h-1.5 bg-green-500 rounded-full"></span>
-                Signed / ഒപ്പിട്ടു
-              </span>
-            </div>
-            <div class="flex gap-1.5 ml-auto shrink-0">
-              <button class="w-9 h-9 flex items-center justify-center text-on-surface-variant
-                             hover:text-primary hover:bg-surface-container-high
-                             rounded-lg transition-colors">
-                <span class="material-symbols-outlined text-lg">download</span>
-              </button>
-              <button class="w-9 h-9 flex items-center justify-center text-on-surface-variant
-                             hover:text-primary hover:bg-surface-container-high
-                             rounded-lg transition-colors">
-                <span class="material-symbols-outlined text-lg">more_vert</span>
-              </button>
-            </div>
-          </div>
-          <!-- /row 4, /archive-doc-list -->
+        <!-- ── Dynamic document list ──────────────────────────────────────
+             id="archive-doc-list" is cleared and repopulated by
+             script.js renderArchiveTab() each time this tab is opened.
+             No static placeholder rows — real data only.
+             The outer div is a plain flex-column; script.js injects
+             .doc-row elements with data-filename for the inline search.
+        ─────────────────────────────────────────────────────────────── -->
+        <div id="archive-doc-list" class="flex flex-col gap-4">
+          <!-- Populated by script.js — empty on first load -->
         </div>
-
-          <!-- Security Insight Card (dark bento) -->
-          <div class="col-span-8 p-8 bg-slate-900 rounded-3xl relative overflow-hidden group">
-            <div class="relative z-10 flex h-full items-center gap-8">
-              <div class="flex-1">
-                <div class="flex items-center gap-2 mb-5">
-                  <span class="px-3 py-1 bg-tertiary-fixed text-on-tertiary-fixed
-                               rounded-full text-[10px] font-bold uppercase tracking-wider">
-                    Security Identity Badge
-                  </span>
-                </div>
-                <h3 class="font-headline text-2xl font-bold text-white mb-2">
-                  Blockchain Verified Vault
-                </h3>
-                <p class="text-slate-400 text-sm leading-relaxed mb-6 max-w-sm">
-                  Your document integrity is secured. SHA-256 hashing anchors every signed
-                  document — ensuring tamper-proof verification at any time.
-                </p>
-                <button class="flex items-center gap-2 text-white font-bold text-sm
-                               hover:text-tertiary-fixed-dim transition-colors">
-                  View Security Protocols
-                  <span class="material-symbols-outlined text-sm">arrow_forward</span>
-                </button>
-              </div>
-              <div class="shrink-0">
-                <div class="w-28 h-28 rounded-2xl bg-white/5 border border-white/10
-                            backdrop-blur-md flex items-center justify-center">
-                  <span class="material-symbols-outlined text-white/30 text-6xl"
-                        style="font-variation-settings:'FILL' 1">verified</span>
-                </div>
-              </div>
-            </div>
-            <!-- Ambient glow blob -->
-            <div class="absolute -right-16 -bottom-16 w-64 h-64 bg-primary rounded-full
-                        blur-[100px] opacity-20 group-hover:opacity-30 transition-opacity"></div>
-          </div>
-
-          <!-- Stats Card -->
-          <div class="col-span-4 p-8 bg-surface-container-low rounded-3xl flex flex-col
-                      justify-between border border-outline-variant/10">
-            <div>
-              <h5 class="text-on-surface-variant/70 font-bold text-[10px]
-                         uppercase tracking-widest mb-1">
-                Monthly Volume / പ്രതിമാസ രേഖകൾ
-              </h5>
-              <p class="font-headline text-4xl font-extrabold text-on-surface">142</p>
-            </div>
-            <div class="mt-8">
-              <div class="flex justify-between items-end mb-2">
-                <span class="text-xs font-bold text-on-surface-variant">Storage Used</span>
-                <span class="text-xs font-bold text-primary">64%</span>
-              </div>
-              <div class="h-2 w-full bg-surface-container-highest rounded-full overflow-hidden">
-                <div class="h-full bg-primary-container w-[64%] rounded-full"></div>
-              </div>
-              <p class="text-[10px] text-on-surface-variant/60 mt-2 font-medium">
-                8.2 GB of 12.0 GB remaining
-              </p>
-            </div>
-          </div>
-
-        </div>
-        <!-- /bento grid -->
 
         <!-- Footer -->
-        <footer class="mt-12 flex justify-between items-center
+        <footer class="mt-10 md:mt-12 flex flex-col sm:flex-row justify-between items-center gap-4 sm:gap-0
                        text-[11px] text-on-surface-variant/50 font-bold
                        uppercase tracking-widest
                        border-t border-outline-variant/15 pt-6">
-          <div class="flex gap-8">
+          <div class="flex gap-6 md:gap-8">
             <span>Active Sessions: 01</span>
             <span>Last Login: Today, IST</span>
           </div>
