@@ -1,7 +1,7 @@
 /* ═══════════════════════════════════════════════════════════════════════
-   Ink Sign Studio — script.js  (v10)
+   Ink Sign Studio — script.js  (v11)
    ─────────────────────────────────────────────────────────────────────
-   §SPA  Tab-switching (Dashboard / Archive / Templates)
+   §SPA  Tab-switching (Dashboard / Archive)
    §1    PIN screen  +  Forgot-PIN / Reset-App
    §2    State & DOM refs
    §2·5  Global loading overlay
@@ -10,6 +10,7 @@
          ┌── Organizer Pipeline ───────────────────────────────────────┐
          │  Upload (multiple PDFs) → pdf.js thumbnail render           │
          │  → HTML5 drag-and-drop reorder → page delete                │
+         │  → page rotate (90° increments, stored in orgPages[].rot)   │
          │  → "Proceed to Sign" → pdf-lib merge (eOffice flatten)      │
          │  → hand off to §4 signing canvas                            │
          └─────────────────────────────────────────────────────────────┘
@@ -25,6 +26,7 @@
          │  ⑤  Auto-Load on Start     — sidebar preview + trash button │
          └─────────────────────────────────────────────────────────────┘
    §7    Freehand draw tool
+   §7·5  Add Text tool (fabric.IText — colour-linked to swatches)
    §8    Delete  (button + Delete/Backspace key)
    §9    Download  — pdf-lib, rotation-aware, BlendMode.Multiply on top
                      eOffice form flattening before save
@@ -34,10 +36,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   /* ════════════════════════════════════════════════════════════════════
      §SPA  TAB SWITCHING
-     ──────────────────────────────────────────────────────────────────
-     Any element with data-tab="<name>" toggles the panel #tab-<name>.
-     switchTab(name) is also called programmatically when a PDF is
-     uploaded so the user lands on the Dashboard automatically.
   ════════════════════════════════════════════════════════════════════ */
   function switchTab(targetName) {
     document.querySelectorAll('.nav-tab').forEach(t => {
@@ -100,14 +98,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   /* ════════════════════════════════════════════════════════════════════
      §ARCHIVE  HISTORY  —  save & render signed-document records
-     ──────────────────────────────────────────────────────────────────
-     saveArchiveRecord(name, size)  — called by §9 Download on success.
-     renderArchiveTab()             — called when the Archive tab opens.
-     Storage key: 'iss_archive_history'  (array, newest-first)
-     Record shape: { name: string, date: ISO string, size: number (bytes) }
   ════════════════════════════════════════════════════════════════════ */
 
-  /* ── Save a single download record ─────────────────────────────── */
   function saveArchiveRecord(name, size) {
     try {
       const history = JSON.parse(localStorage.getItem('iss_archive_history') || '[]');
@@ -118,7 +110,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  /* ── Format helpers ─────────────────────────────────────────────── */
   function _archiveFormatDate(isoString) {
     try {
       return new Date(isoString).toLocaleDateString('en-IN', {
@@ -133,12 +124,9 @@ document.addEventListener('DOMContentLoaded', () => {
     return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
   }
 
-  /* ── Build one doc-row element matching the existing static structure ── */
   function _buildArchiveRow(record) {
     const row     = document.createElement('div');
-    // Use the doc-row class (flex) — no longer inside a grid so no col-span needed
     row.className = 'doc-row gap-3 sm:gap-5';
-    // data-filename enables the inline search filter in the archive header
     row.dataset.filename = (record.name || '').toLowerCase();
 
     const formattedDate = _archiveFormatDate(record.date);
@@ -184,12 +172,10 @@ document.addEventListener('DOMContentLoaded', () => {
     return row;
   }
 
-  /* ── Clear static rows and render real data ─────────────────────── */
   function renderArchiveTab() {
     const list = document.getElementById('archive-doc-list');
     if (!list) return;
 
-    // Remove all existing content (previous renders or initial empty state)
     list.innerHTML = '';
 
     let history = [];
@@ -198,7 +184,6 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch (_) {}
 
     if (history.length === 0) {
-      // Empty state — flex-column doc-row (no grid col-span needed)
       const empty = document.createElement('div');
       empty.className = 'doc-row flex-col gap-3 items-center justify-center py-10 text-center';
       empty.innerHTML = `
@@ -275,16 +260,21 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function unlockApp() {
+    /* ── FIX #2: Auto-clear Organizer on unlock ──────────────────────
+       Explicitly reset orgPages and the grid DOM so no stale state
+       lingers if the PIN screen is dismissed multiple times in a session.
+    ─────────────────────────────────────────────────────────────────── */
+    orgPages = [];
+    if (thumbGrid) thumbGrid.innerHTML = '';
+    if (orgPageCount) orgPageCount.textContent = '0 pages';
+
     pinScreen.style.opacity    = '0';
     pinScreen.style.transition = 'opacity 0.5s';
     setTimeout(() => (pinScreen.style.display = 'none'), 500);
     appDashboard.classList.remove('blur-md', 'pointer-events-none', 'grayscale-[0.2]', 'opacity-40');
   }
 
-  /* ── Reset / Forgot-PIN handler ─────────────────────────────────────
-     Wires BOTH possible IDs: btn-forgot-pin (PIN screen overlay) and
-     btn-reset-app (dashboard header).  Uses optional chaining so
-     missing elements are silently ignored. */
+  /* ── Reset / Forgot-PIN handler ──────────────────────────────────── */
   function doResetApp() {
     const msg =
       'Reset the app?\n\n' +
@@ -298,7 +288,7 @@ document.addEventListener('DOMContentLoaded', () => {
       'saved_ink',
       'saved_desig_seal',
       'saved_office_seal',
-      'iss_archive_history',   // §ARCHIVE — cleared on full reset
+      'iss_archive_history',
     ].forEach(k => localStorage.removeItem(k));
     location.reload();
   }
@@ -338,17 +328,14 @@ document.addEventListener('DOMContentLoaded', () => {
   const pageDimensions = new Map();
 
   // Organizer state
-  // Each entry: { srcBytes: ArrayBuffer, srcPageIndex: number, label: string, thumbCanvas: HTMLCanvasElement }
+  // Each entry: { srcBytes, srcPageIndex, label, thumbCanvas, rotation }
+  // rotation: 0 | 90 | 180 | 270  (degrees, clockwise)
   let orgPages   = [];
   let dragSrcIdx = null;
 
 
   /* ════════════════════════════════════════════════════════════════════
      §2·5  GLOBAL LOADING OVERLAY
-     ──────────────────────────────────────────────────────────────────
-     showLoader(msg) / hideLoader() wrap every heavy async operation.
-     The setTimeout(..., 10) yields one paint cycle so the overlay
-     is rendered before CPU-intensive work begins.
   ════════════════════════════════════════════════════════════════════ */
   const loadingOverlay = document.getElementById('loading-overlay');
   const loadingText    = document.getElementById('loading-text');
@@ -417,9 +404,11 @@ document.addEventListener('DOMContentLoaded', () => {
          → for each PDF, extract all pages → push into orgPages[]
          → renderThumbnails() builds the draggable grid
        Drag & drop (native HTML5) reorders orgPages[]
+       Rotate button increments orgPages[n].rotation by 90° (mod 360)
        Delete button splices orgPages[], re-renders grid
        "Proceed to Sign" → mergeAndLoad()
          → pdf-lib: create new doc, flatten eOffice forms, copyPages()
+         → apply rotation via copiedPage.setRotation(degrees)
          → save() → ArrayBuffer → hand to loadPdfBytes() (§4 entry point)
        "Back to Organizer" returns to organizer screen
        "Start Over" resets everything
@@ -444,14 +433,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const validFiles = files.filter(f => f.size <= 25 * 1024 * 1024);
     if (!validFiles.length) return;
 
-    // Auto-switch to Dashboard tab so the organizer screen is visible
     switchTab('dashboard');
-
     await processUploadedFiles(validFiles);
   });
 
   /* processUploadedFiles — reads each PDF with pdf.js, renders THUMB_SCALE
-     thumbnails for every page, and appends them to orgPages[]. */
+     thumbnails for every page, and appends them to orgPages[].
+     Each page entry now includes `rotation: 0` for the rotate tool. */
   async function processUploadedFiles(files) {
     if (!files.length) return;
 
@@ -462,7 +450,7 @@ document.addEventListener('DOMContentLoaded', () => {
     orgSpinner.classList.remove('hidden');
 
     for (const file of files) {
-      const bytes  = await file.arrayBuffer();
+      const bytes     = await file.arrayBuffer();
       const pdfDocTmp = await pdfjsLib.getDocument({ data: bytes.slice(0) }).promise;
 
       for (let i = 0; i < pdfDocTmp.numPages; i++) {
@@ -479,6 +467,7 @@ document.addEventListener('DOMContentLoaded', () => {
           srcPageIndex: i,
           label:        `${file.name.replace(/\.pdf$/i, '')}  p.${i + 1}`,
           thumbCanvas:  tc,
+          rotation:     0,    // ── FIX #3: rotation state (0|90|180|270)
         });
       }
     }
@@ -488,7 +477,29 @@ document.addEventListener('DOMContentLoaded', () => {
     renderThumbnails();
   }
 
-  /* renderThumbnails — rebuilds the entire #thumb-grid DOM from orgPages[]. */
+  /* ── FIX #3 HELPER: return a new canvas with src rotated by `degrees` ──
+     Handles 90/180/270; returns src unchanged for 0.
+     Used to visually display the rotated thumbnail in the organizer grid. */
+  function getRotatedCanvas(src, degrees) {
+    if (!degrees || degrees === 0) return src;
+    const rad  = degrees * Math.PI / 180;
+    const swap = degrees === 90 || degrees === 270;
+    const destW = swap ? src.height : src.width;
+    const destH = swap ? src.width  : src.height;
+    const dest  = document.createElement('canvas');
+    dest.width  = destW;
+    dest.height = destH;
+    const ctx   = dest.getContext('2d');
+    ctx.save();
+    ctx.translate(destW / 2, destH / 2);
+    ctx.rotate(rad);
+    ctx.drawImage(src, -src.width / 2, -src.height / 2);
+    ctx.restore();
+    return dest;
+  }
+
+  /* renderThumbnails — rebuilds the entire #thumb-grid DOM from orgPages[].
+     Each card now has: drag handle · display canvas · label · rotate btn · delete btn */
   function renderThumbnails() {
     thumbGrid.innerHTML = '';
     orgPageCount.textContent = `${orgPages.length} page${orgPages.length !== 1 ? 's' : ''}`;
@@ -505,19 +516,32 @@ document.addEventListener('DOMContentLoaded', () => {
       card.draggable   = true;
       card.dataset.idx = idx;
 
-      // Clone thumb canvas into a display canvas
-      const display   = document.createElement('canvas');
-      display.width   = pg.thumbCanvas.width;
-      display.height  = pg.thumbCanvas.height;
-      display.getContext('2d').drawImage(pg.thumbCanvas, 0, 0);
+      // ── FIX #3: render the thumbnail with any stored rotation applied ──
+      const rotatedSrc = getRotatedCanvas(pg.thumbCanvas, pg.rotation);
+      const display    = document.createElement('canvas');
+      display.width    = rotatedSrc.width;
+      display.height   = rotatedSrc.height;
+      display.getContext('2d').drawImage(rotatedSrc, 0, 0);
 
-      // Footer: label + delete button
+      // Footer: label + rotate button + delete button
       const footer = document.createElement('div');
       footer.className = 'thumb-footer';
 
       const labelEl = document.createElement('span');
       labelEl.textContent   = pg.label;
-      labelEl.style.cssText = 'flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:82px;';
+      labelEl.style.cssText = 'flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:62px;font-size:10px;';
+
+      // ── FIX #3: Rotate button ──────────────────────────────────────
+      const rotBtn = document.createElement('button');
+      rotBtn.className = 'thumb-del';   // reuse same base style (overridden below)
+      rotBtn.title     = 'Rotate 90°';
+      rotBtn.style.cssText = 'color:#005bbf;margin-right:2px;';
+      rotBtn.innerHTML = '<span class="material-symbols-outlined" style="font-size:14px">rotate_right</span>';
+      rotBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        orgPages[idx].rotation = ((orgPages[idx].rotation || 0) + 90) % 360;
+        renderThumbnails();
+      });
 
       const delBtn = document.createElement('button');
       delBtn.className = 'thumb-del';
@@ -529,7 +553,7 @@ document.addEventListener('DOMContentLoaded', () => {
         renderThumbnails();
       });
 
-      footer.append(labelEl, delBtn);
+      footer.append(labelEl, rotBtn, delBtn);
 
       // Drag-handle grip dots (decorative)
       const handle = document.createElement('div');
@@ -543,7 +567,7 @@ document.addEventListener('DOMContentLoaded', () => {
         dragSrcIdx = idx;
         card.classList.add('dragging');
         e.dataTransfer.effectAllowed = 'move';
-        e.dataTransfer.setData('text/plain', idx); // required for Firefox
+        e.dataTransfer.setData('text/plain', idx);
       });
 
       card.addEventListener('dragend', () => {
@@ -569,7 +593,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const targetIdx = parseInt(card.dataset.idx, 10);
         if (dragSrcIdx === null || dragSrcIdx === targetIdx) return;
 
-        // Reorder: remove source, insert before target
         const [moved] = orgPages.splice(dragSrcIdx, 1);
         const insertAt = dragSrcIdx < targetIdx ? targetIdx - 1 : targetIdx;
         orgPages.splice(insertAt, 0, moved);
@@ -583,17 +606,14 @@ document.addEventListener('DOMContentLoaded', () => {
   /* mergeAndLoad — uses pdf-lib to copy pages in current orgPages order
      into a brand-new PDF, then passes the resulting bytes to loadPdfBytes().
 
+     ── FIX #3: Page rotation export ────────────────────────────────────
+     For each page, copiedPage.setRotation(PDFLib.degrees(pg.rotation))
+     is called after copying so the organizer rotation is baked into the
+     merged PDF before it is handed to the signing canvas.
+
      eOffice / Digital Signature Flattening:
-     Before copying pages from each source document we call
-       srcDoc.getForm().flatten()
-     inside a try/catch.  This converts any interactive AcroForm fields
-     (including eOffice digital-signature appearances) into ordinary flat
-     vector graphics.  The cryptographic signature is intentionally
-     invalidated by this step, but ALL visual content is preserved so
-     the merged document looks identical to the original.  This also
-     prevents pdf-lib from throwing "Cannot embed a form field" errors
-     and prevents PDF viewers from displaying "Invalid Signature" warnings
-     on the output file.
+     srcDoc.getForm().flatten() inside try/catch converts AcroForm fields
+     into flat vector graphics, preventing "Invalid Signature" warnings.
   */
   async function mergeAndLoad() {
     if (orgPages.length === 0) { alert('Please add at least one page.'); return; }
@@ -611,19 +631,21 @@ document.addEventListener('DOMContentLoaded', () => {
       for (const pg of orgPages) {
         let srcDoc = srcDocCache.get(pg.srcBytes);
         if (!srcDoc) {
-          // ignoreEncryption: true lets pdf-lib open digitally-signed /
-          // encrypted eOffice documents without throwing.
           srcDoc = await PDFLib.PDFDocument.load(pg.srcBytes, { ignoreEncryption: true });
-
-          // ── eOffice form flattening ──────────────────────────────
-          // Flatten all AcroForm fields (including signature appearances)
-          // into static page content.  Wrapped in try/catch so a PDF
-          // with no form at all doesn't cause an error.
           try { srcDoc.getForm().flatten(); } catch (_) {}
-
           srcDocCache.set(pg.srcBytes, srcDoc);
         }
         const [copiedPage] = await mergedDoc.copyPages(srcDoc, [pg.srcPageIndex]);
+
+        // ── FIX #3: apply organizer rotation to the exported page ──────
+        if (pg.rotation && pg.rotation !== 0) {
+          // pdf-lib stores rotation as cumulative; setRotation replaces it.
+          // We need to combine any pre-existing page rotation with our added rotation.
+          const existingAngle = copiedPage.getRotation().angle || 0;
+          const totalAngle    = (existingAngle + pg.rotation) % 360;
+          copiedPage.setRotation(PDFLib.degrees(totalAngle));
+        }
+
         mergedDoc.addPage(copiedPage);
       }
 
@@ -686,14 +708,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   /* ════════════════════════════════════════════════════════════════════
      §4  PDF LOAD FROM BYTES  →  PDF.JS RENDER
-     ──────────────────────────────────────────────────────────────────
-     loadPdfBytes() is the single entry point for the signing stage.
-     It is called by mergeAndLoad() after the organizer merge.
   ════════════════════════════════════════════════════════════════════ */
   async function loadPdfBytes(buffer) {
-    // Store the pristine master copy.  pdf.js transfers the ArrayBuffer
-    // to its worker; passing a slice() keeps pdfBytes intact for repeated
-    // downloads without a page refresh.
     pdfBytes = buffer;
 
     showLoader('Loading PDF… Please wait.');
@@ -774,13 +790,24 @@ document.addEventListener('DOMContentLoaded', () => {
       width: width + 'px', height: height + 'px',
     });
 
-    fabricCanvas.on('selection:created', () => deleteBtnEl.classList.remove('hidden'));
-    fabricCanvas.on('selection:updated', () => deleteBtnEl.classList.remove('hidden'));
-    fabricCanvas.on('selection:cleared',  () => deleteBtnEl.classList.add('hidden'));
+    /* ── FIX #4: Selection events — show delete button and expose
+       colour toolbar when a text object is selected so the user
+       can change text colour without entering draw mode first. ────── */
+    fabricCanvas.on('selection:created', () => {
+      deleteBtnEl.classList.remove('hidden');
+      _syncColorToolbarToSelection();
+    });
+    fabricCanvas.on('selection:updated', () => {
+      deleteBtnEl.classList.remove('hidden');
+      _syncColorToolbarToSelection();
+    });
+    fabricCanvas.on('selection:cleared',  () => {
+      deleteBtnEl.classList.add('hidden');
+      // Hide colour toolbar unless draw mode is still active
+      if (!isDrawingMode) drawToolbar.style.display = 'none';
+    });
 
     // ── Ghost follower: track cursor during stamping mode ──────────────
-    // mouse:move fires continuously; reposition the ghost and re-render.
-    // The ghost is non-evented so Fabric won't reset the cursor on hover.
     fabricCanvas.on('mouse:move', (opt) => {
       if (!stampingMode || !ghostStamp) return;
       const p = opt.pointer;
@@ -793,7 +820,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // ── Stamping mode: place real stamp at the click point ─────────────
-    // Capture pointer + pending state BEFORE exitStampingMode() clears them.
     fabricCanvas.on('mouse:down', (opt) => {
       if (!stampingMode || !pendingStampDataUrl) return;
 
@@ -801,9 +827,8 @@ document.addEventListener('DOMContentLoaded', () => {
       const dataUrl = pendingStampDataUrl;
       const color   = pendingStampColor;
 
-      exitStampingMode();   // removes ghost, resets cursors, clears state
+      exitStampingMode();
 
-      // Place a fully opaque, interactive copy at the clicked coordinates
       fabric.Image.fromURL(dataUrl, (imgObj) => {
         const MAX_W = fabricCanvas.width * 0.30;
         if (imgObj.width > MAX_W) imgObj.scaleToWidth(MAX_W);
@@ -831,7 +856,25 @@ document.addEventListener('DOMContentLoaded', () => {
     fabricCanvas.freeDrawingBrush          = new fabric.PencilBrush(fabricCanvas);
     fabricCanvas.freeDrawingBrush.color    = currentInkColor;
     fabricCanvas.freeDrawingBrush.width    = currentBrushSize;
-    fabricCanvas.freeDrawingBrush.decimate = 0;   // full-fidelity path, no simplification
+    fabricCanvas.freeDrawingBrush.decimate = 0;
+  }
+
+  /* ── Show/hide colour toolbar based on what is selected ──────────── */
+  function _syncColorToolbarToSelection() {
+    if (!fabricCanvas) return;
+    const obj = fabricCanvas.getActiveObject();
+    const isText = obj && (obj.type === 'i-text' || obj.type === 'textbox');
+    if (isText && !isDrawingMode) {
+      // Expose the colour swatches so the user can pick a text colour
+      drawToolbar.style.display = 'flex';
+      // Sync the active colour button to the text's current fill
+      const fill = obj.get('fill') || currentInkColor;
+      document.querySelectorAll('.color-btn').forEach(b => {
+        b.classList.toggle('active', b.dataset.color === fill);
+      });
+    } else if (!isText && !isDrawingMode) {
+      drawToolbar.style.display = 'none';
+    }
   }
 
   function saveCurrentPageObjects() {
@@ -851,12 +894,12 @@ document.addEventListener('DOMContentLoaded', () => {
   /* ════════════════════════════════════════════════════════════════════
      §6  IMAGE-BASED STAMPS  +  IMAGE PROCESSING & STORAGE PIPELINE
   ════════════════════════════════════════════════════════════════════ */
-  const BG_THRESHOLD = 240;   // luminance threshold for background removal
-  const TARGET_KB    = 15;    // max stamp JPEG size in kilobytes
-  const MIN_SCALE    = 0.40;  // never shrink below 40 % during compression
-  const SCALE_STEP   = 0.10;  // reduce by 10 % per compression pass
-  const MAX_STAMP_PX = 200;   // longest edge cap before JPEG export
-  const JPEG_QUALITY = 0.75;  // JPEG encoder quality
+  const BG_THRESHOLD = 240;
+  const TARGET_KB    = 15;
+  const MIN_SCALE    = 0.40;
+  const SCALE_STEP   = 0.10;
+  const MAX_STAMP_PX = 200;
+  const JPEG_QUALITY = 0.75;
 
   const STAMP_DEFS = [
     { btnId: 'btn-ink-sig',     label: 'Ink Signature',    color: '#005bbf', storageKey: 'saved_ink'        },
@@ -925,7 +968,6 @@ document.addEventListener('DOMContentLoaded', () => {
   /* ── Pipeline step ③b: compress to JPEG, safety loop ────────────── */
   function compress(scaledCanvas) {
     const origW = scaledCanvas.width, origH = scaledCanvas.height;
-    // Composite transparent pixels onto white (JPEG has no alpha)
     const flat  = document.createElement('canvas');
     flat.width  = origW; flat.height = origH;
     const fc    = flat.getContext('2d');
@@ -936,7 +978,6 @@ document.addEventListener('DOMContentLoaded', () => {
     let dataUrl = flat.toDataURL('image/jpeg', JPEG_QUALITY);
 
     while (dataUrl.length > TARGET_KB * 1024 * 1.37 && scale > MIN_SCALE) {
-      // 1.37 ≈ base64 overhead factor
       scale -= SCALE_STEP;
       const w = Math.max(1, Math.round(origW * scale));
       const h = Math.max(1, Math.round(origH * scale));
@@ -975,13 +1016,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   /* ════════════════════════════════════════════════════════════════════
      STAMPING MODE
-     ──────────────────────────────────────────────────────────────────
-     When a stamp is activated:
-       1. Canvas cursor → crosshair  (via Fabric's defaultCursor / hoverCursor)
-       2. A blue hint banner appears above the document.
-       3. A semi-transparent ghost follows the mouse (non-evented Fabric image).
-       4. On canvas click: ghost removed, real opaque stamp placed at pointer.
-       5. Escape key or "Cancel" link exits stamping mode.
   ════════════════════════════════════════════════════════════════════ */
   let stampingMode        = false;
   let pendingStampDataUrl = null;
@@ -1019,21 +1053,19 @@ document.addEventListener('DOMContentLoaded', () => {
     pendingStampDataUrl = dataUrl;
     pendingStampColor   = color;
 
-    // Fabric overrides DOM cursor on every mousemove; use the proper API:
     fabricCanvas.defaultCursor = 'crosshair';
     fabricCanvas.hoverCursor   = 'crosshair';
 
     stampHint.style.display = 'flex';
 
-    // Ghost: non-interactive, semi-transparent, follows the mouse
     fabric.Image.fromURL(dataUrl, (imgObj) => {
-      if (!stampingMode) return;   // cancelled while image was loading
+      if (!stampingMode) return;
 
       const MAX_W = fabricCanvas.width * 0.30;
       if (imgObj.width > MAX_W) imgObj.scaleToWidth(MAX_W);
 
       imgObj.set({
-        left:        -9999,   // parked off-screen until first mouse:move
+        left:        -9999,
         top:         -9999,
         opacity:     0.50,
         selectable:  false,
@@ -1067,7 +1099,6 @@ document.addEventListener('DOMContentLoaded', () => {
     stampHint.style.display = 'none';
   }
 
-  // Escape key exits stamping mode
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape' && stampingMode) exitStampingMode();
   });
@@ -1146,7 +1177,6 @@ document.addEventListener('DOMContentLoaded', () => {
     imgPicker.style.display = 'none';
     document.body.appendChild(imgPicker);
 
-    // Build saved-stamp preview on load
     buildSavedStampUI(btnId, label, color, storageKey);
 
     sidebarBtn.addEventListener('click', () => {
@@ -1185,9 +1215,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   /* ════════════════════════════════════════════════════════════════════
      §7  FREEHAND DRAW TOOL
-     ──────────────────────────────────────────────────────────────────
-     decimate = 0 → Fabric records every pointer event coordinate with
-     no Douglas-Peucker simplification → silkiest possible strokes.
   ════════════════════════════════════════════════════════════════════ */
   const toggleDrawBtn  = document.getElementById('btn-toggle-draw');
   const drawBtnLabel   = document.getElementById('draw-btn-label');
@@ -1239,15 +1266,30 @@ document.addEventListener('DOMContentLoaded', () => {
     const b    = fabricCanvas.freeDrawingBrush;
     b.color    = currentInkColor;
     b.width    = currentBrushSize;
-    b.decimate = 0;   // full-fidelity path, no simplification
+    b.decimate = 0;
   }
 
+  /* ── Colour swatch buttons — linked to both draw brush AND selected text ──
+     FIX #4: If an IText / Textbox object is currently selected on the
+     canvas, clicking a colour swatch now also updates that object's fill.
+  ─────────────────────────────────────────────────────────────────────── */
   document.querySelectorAll('.color-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       currentInkColor = btn.dataset.color;
       document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
+
+      // Update brush if in drawing mode
       if (isDrawingMode) applyBrushSettings();
+
+      // ── FIX #4: Update selected text object's fill colour ──────────
+      if (fabricCanvas) {
+        const activeObj = fabricCanvas.getActiveObject();
+        if (activeObj && (activeObj.type === 'i-text' || activeObj.type === 'textbox')) {
+          activeObj.set('fill', currentInkColor);
+          fabricCanvas.requestRenderAll();
+        }
+      }
     });
   });
 
@@ -1265,6 +1307,58 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
   /* ════════════════════════════════════════════════════════════════════
+     §7·5  ADD TEXT TOOL
+     ──────────────────────────────────────────────────────────────────
+     Adds an editable fabric.IText at the centre of the canvas.
+     The colour is seeded from the currently active colour swatch so it
+     matches the user's last-chosen ink colour.
+     After placing, the colour toolbar is revealed so the user can
+     immediately change the text colour via the swatches.
+  ════════════════════════════════════════════════════════════════════ */
+  document.getElementById('btn-add-text')?.addEventListener('click', () => {
+    if (!fabricCanvas) { alert('ആദ്യം ഒരു PDF അപ്‌ലോഡ് ചെയ്യുക!'); return; }
+
+    // Exit draw / stamp modes before adding text
+    setDrawingMode(false);
+    exitStampingMode();
+
+    const textObj = new fabric.IText('Type here', {
+      left:        fabricCanvas.width  / 2,
+      top:         fabricCanvas.height / 2,
+      originX:     'center',
+      originY:     'center',
+      fontFamily:  'Inter, Arial, sans-serif',
+      fontSize:    Math.max(16, Math.round(fabricCanvas.width * 0.025)),
+      fill:        currentInkColor,
+      fontWeight:  '600',
+      hasControls: true,
+      hasBorders:  true,
+      borderColor: currentInkColor,
+      cornerColor: currentInkColor,
+      cornerSize:  10,
+      transparentCorners: false,
+      cornerStyle: 'circle',
+      borderDashArray: [4, 3],
+      editable:    true,
+    });
+
+    fabricCanvas.add(textObj);
+    fabricCanvas.setActiveObject(textObj);
+
+    // Enter editing mode immediately so the user can type right away
+    textObj.enterEditing();
+    textObj.selectAll();
+    fabricCanvas.requestRenderAll();
+
+    // Reveal colour toolbar so the user can pick a text colour
+    if (!isDrawingMode) drawToolbar.style.display = 'flex';
+
+    // Close mobile sidebar so the canvas is fully visible after inserting text
+    _closeSidebar();
+  });
+
+
+  /* ════════════════════════════════════════════════════════════════════
      §8  DELETE  (sidebar button + Delete / Backspace key)
   ════════════════════════════════════════════════════════════════════ */
   deleteBtnEl.addEventListener('click', deleteSelected);
@@ -1272,8 +1366,9 @@ document.addEventListener('DOMContentLoaded', () => {
   document.addEventListener('keydown', e => {
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
     if (e.key !== 'Delete' && e.key !== 'Backspace') return;
-    // Don't intercept Backspace/Delete while in the PIN input
     if (e.target === pinInput) return;
+    // Don't intercept Backspace while a fabric IText is being edited
+    if (fabricCanvas && fabricCanvas.getActiveObject()?.isEditing) return;
     deleteSelected();
   });
 
@@ -1299,8 +1394,7 @@ document.addEventListener('DOMContentLoaded', () => {
      eOffice / Digital Signature Flattening:
      After loading the merged PDF we call pdfLibDoc.getForm().flatten()
      (wrapped in try/catch) to convert any remaining AcroForm fields
-     into flat vector graphics.  This prevents "Invalid Signature"
-     warnings in PDF viewers and removes interactive form artifacts.
+     into flat vector graphics.
   ════════════════════════════════════════════════════════════════════ */
   document.getElementById('btn-download').addEventListener('click', async () => {
     if (!pdfDoc || !pdfBytes) {
@@ -1317,16 +1411,12 @@ document.addEventListener('DOMContentLoaded', () => {
     await new Promise(r => setTimeout(r, 10));
 
     try {
-      // pdfBytes.slice(0) creates a fresh copy each call so the user can
-      // download multiple times without refreshing the page.
       const pdfLibDoc = await PDFLib.PDFDocument.load(
         pdfBytes.slice(0),
         { ignoreEncryption: true }
       );
 
       // ── eOffice form flattening ──────────────────────────────────
-      // Convert any remaining interactive form fields / signature
-      // appearances into static page content before stamping.
       try { pdfLibDoc.getForm().flatten(); } catch (_) {}
 
       const pdfPages = pdfLibDoc.getPages();
@@ -1337,28 +1427,20 @@ document.addEventListener('DOMContentLoaded', () => {
         const dims = pageDimensions.get(p);
         if (!dims) continue;
 
-        // Step 1: render saved Fabric state to an off-screen canvas
         const snapCanvas = await snapshotFabricPage(json, dims.canvasW, dims.canvasH);
 
-        // Step 2: read stored (unrotated) page geometry
         const pdfPage  = pdfPages[p - 1];
         const mediaBox = pdfPage.getMediaBox();
         const storedW  = mediaBox.width;
         const storedH  = mediaBox.height;
         const rotation = pdfPage.getRotation().angle;
 
-        // Step 3: rotate snapshot back to stored (MediaBox) orientation
         const alignedCanvas = applyInverseRotation(snapCanvas, rotation);
 
-        // Step 4: export as JPEG (white background, Multiply makes it invisible)
         const jpegDataUrl = alignedCanvas.toDataURL('image/jpeg', 0.82);
         const jpegBase64  = jpegDataUrl.split(',')[1];
         const jpegBytes   = Uint8Array.from(atob(jpegBase64), c => c.charCodeAt(0));
 
-        // Step 5: embed and draw ON TOP with Multiply blend mode
-        //   result = (overlay × background) / 255
-        //   White (255) → bg unchanged (invisible)
-        //   Dark ink    → darkened (visible)
         const embedded = await pdfLibDoc.embedJpg(jpegBytes);
         pdfPage.drawImage(embedded, {
           x:         0,
@@ -1369,7 +1451,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
       }
 
-      // Step 6: save and trigger download
       const finalBytes = await pdfLibDoc.save();
       const blob     = new Blob([finalBytes], { type: 'application/pdf' });
       const filename = 'signed-document.pdf';
@@ -1379,7 +1460,6 @@ document.addEventListener('DOMContentLoaded', () => {
       }).click();
       setTimeout(() => URL.revokeObjectURL(url), 10_000);
 
-      // ── Archive: persist a record of this download ───────────────
       saveArchiveRecord(filename, blob.size);
 
     } catch (err) {
@@ -1404,9 +1484,6 @@ document.addEventListener('DOMContentLoaded', () => {
         sc.loadFromJSON(fabricJson, () => {
           sc.renderAll();
 
-          // Composite onto white for JPEG-safe export
-          // (Fabric renders with transparent background by default;
-          //  JPEG encodes alpha=0 as black without this step)
           const flat    = document.createElement('canvas');
           flat.width    = canvasW; flat.height = canvasH;
           const flatCtx = flat.getContext('2d');
@@ -1421,7 +1498,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   /* ── HELPER: applyInverseRotation ────────────────────────────────── */
   function applyInverseRotation(srcCanvas, rotation) {
-    if (!rotation || rotation === 0) return srcCanvas;   // fast path
+    if (!rotation || rotation === 0) return srcCanvas;
 
     const srcW = srcCanvas.width, srcH = srcCanvas.height;
     const dest = document.createElement('canvas');
