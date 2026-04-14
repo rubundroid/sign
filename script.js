@@ -52,8 +52,172 @@ document.addEventListener('DOMContentLoaded', () => {
     tab.addEventListener('click', () => switchTab(tab.dataset.tab));
   });
 
+  // Render real archive data whenever the Archive tab is opened
+  document.querySelector('[data-tab="archive"]')
+    ?.addEventListener('click', renderArchiveTab);
+
   // Start on dashboard
   switchTab('dashboard');
+
+
+  /* ════════════════════════════════════════════════════════════════════
+     §MOBILE  SIDEBAR TOGGLE
+     ──────────────────────────────────────────────────────────────────
+     The sidebar is a fixed, slide-in overlay on small screens.
+     #btn-mobile-menu (hamburger) toggles it open/closed.
+     #mobile-sidebar-backdrop (semi-opaque overlay) closes it on tap.
+     We add/remove the `.sidebar-open` class, which the CSS @media
+     (max-width: 767px) block converts to translateX(0).
+     On md+ the sidebar is in normal flow; .sidebar-open has no effect.
+  ════════════════════════════════════════════════════════════════════ */
+  const _sidebar   = document.getElementById('app-sidebar');
+  const _menuBtn   = document.getElementById('btn-mobile-menu');
+  const _backdrop  = document.getElementById('mobile-sidebar-backdrop');
+
+  function _openSidebar() {
+    _sidebar?.classList.add('sidebar-open');
+    _backdrop?.classList.remove('opacity-0', 'pointer-events-none');
+    _backdrop?.classList.add('opacity-100');
+    document.body.classList.add('overflow-hidden');
+  }
+  function _closeSidebar() {
+    _sidebar?.classList.remove('sidebar-open');
+    _backdrop?.classList.remove('opacity-100');
+    _backdrop?.classList.add('opacity-0', 'pointer-events-none');
+    document.body.classList.remove('overflow-hidden');
+  }
+
+  _menuBtn?.addEventListener('click', () => {
+    _sidebar?.classList.contains('sidebar-open') ? _closeSidebar() : _openSidebar();
+  });
+  _backdrop?.addEventListener('click', _closeSidebar);
+
+  // Auto-close sidebar when a major action is taken on mobile
+  ['btn-proceed-sign', 'btn-back-organizer', 'btn-organizer-reset'].forEach(id => {
+    document.getElementById(id)?.addEventListener('click', _closeSidebar);
+  });
+
+
+  /* ════════════════════════════════════════════════════════════════════
+     §ARCHIVE  HISTORY  —  save & render signed-document records
+     ──────────────────────────────────────────────────────────────────
+     saveArchiveRecord(name, size)  — called by §9 Download on success.
+     renderArchiveTab()             — called when the Archive tab opens.
+     Storage key: 'iss_archive_history'  (array, newest-first)
+     Record shape: { name: string, date: ISO string, size: number (bytes) }
+  ════════════════════════════════════════════════════════════════════ */
+
+  /* ── Save a single download record ─────────────────────────────── */
+  function saveArchiveRecord(name, size) {
+    try {
+      const history = JSON.parse(localStorage.getItem('iss_archive_history') || '[]');
+      history.unshift({ name, date: new Date().toISOString(), size });
+      localStorage.setItem('iss_archive_history', JSON.stringify(history));
+    } catch (e) {
+      console.warn('[Archive] Could not save record:', e);
+    }
+  }
+
+  /* ── Format helpers ─────────────────────────────────────────────── */
+  function _archiveFormatDate(isoString) {
+    try {
+      return new Date(isoString).toLocaleDateString('en-IN', {
+        day: 'numeric', month: 'short', year: 'numeric',
+      });
+    } catch (_) { return isoString; }
+  }
+
+  function _archiveFormatSize(bytes) {
+    if (!bytes || bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024)   return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+  }
+
+  /* ── Build one doc-row element matching the existing static structure ── */
+  function _buildArchiveRow(record) {
+    const row     = document.createElement('div');
+    // Use the doc-row class (flex) — no longer inside a grid so no col-span needed
+    row.className = 'doc-row gap-3 sm:gap-5';
+    // data-filename enables the inline search filter in the archive header
+    row.dataset.filename = (record.name || '').toLowerCase();
+
+    const formattedDate = _archiveFormatDate(record.date);
+    const formattedSize = _archiveFormatSize(record.size);
+
+    row.innerHTML = `
+      <div class="shrink-0 bg-blue-50 rounded-xl flex items-center
+                  justify-center text-primary-container"
+           style="width:48px;height:48px;min-width:48px">
+        <span class="material-symbols-outlined text-xl"
+              style="font-variation-settings:'FILL' 1">description</span>
+      </div>
+      <div class="flex-1 min-w-0">
+        <h4 class="font-headline font-bold text-on-surface text-sm leading-tight truncate">
+          ${record.name.replace(/</g, '&lt;').replace(/>/g, '&gt;')}
+        </h4>
+        <p class="text-xs text-on-surface-variant/70 mt-0.5">
+          Signed Document · ${formattedSize}
+        </p>
+      </div>
+      <div class="hidden sm:flex px-5 border-x border-outline-variant/15 flex-col gap-0.5 shrink-0">
+        <span class="text-[10px] text-on-surface-variant/60 font-bold uppercase tracking-wider">
+          Signed Date
+        </span>
+        <span class="text-sm font-headline font-semibold text-on-surface">
+          ${formattedDate}
+        </span>
+      </div>
+      <div class="px-2 sm:px-5 flex items-center shrink-0">
+        <span class="stat-chip bg-green-50 text-green-700">
+          <span class="w-1.5 h-1.5 bg-green-500 rounded-full"></span>
+          <span class="hidden xs:inline">Signed / </span>ഒപ്പിട്ടു
+        </span>
+      </div>
+      <div class="flex gap-1.5 ml-auto shrink-0">
+        <button class="w-9 h-9 flex items-center justify-center text-on-surface-variant
+                       hover:text-primary hover:bg-surface-container-high
+                       rounded-lg transition-colors" title="More options">
+          <span class="material-symbols-outlined text-lg">more_vert</span>
+        </button>
+      </div>
+    `;
+    return row;
+  }
+
+  /* ── Clear static rows and render real data ─────────────────────── */
+  function renderArchiveTab() {
+    const list = document.getElementById('archive-doc-list');
+    if (!list) return;
+
+    // Remove all existing content (previous renders or initial empty state)
+    list.innerHTML = '';
+
+    let history = [];
+    try {
+      history = JSON.parse(localStorage.getItem('iss_archive_history') || '[]');
+    } catch (_) {}
+
+    if (history.length === 0) {
+      // Empty state — flex-column doc-row (no grid col-span needed)
+      const empty = document.createElement('div');
+      empty.className = 'doc-row flex-col gap-3 items-center justify-center py-10 text-center';
+      empty.innerHTML = `
+        <span class="material-symbols-outlined text-4xl text-on-surface-variant/25"
+              style="font-variation-settings:'FILL' 1">inventory_2</span>
+        <p class="text-sm font-headline font-semibold text-on-surface-variant/50">
+          No documents in archive
+        </p>
+        <p class="text-xs text-on-surface-variant/40 max-w-xs leading-relaxed">
+          Every PDF you download will appear here automatically.<br>
+          ഡൗൺലോഡ് ചെയ്ത ഡോക്യുമെന്റുകൾ ഇവിടെ കാണും.
+        </p>
+      `;
+      list.appendChild(empty);
+      return;
+    }
+
+    history.forEach(record => list.appendChild(_buildArchiveRow(record)));
+  }
 
 
   /* ════════════════════════════════════════════════════════════════════
@@ -124,12 +288,18 @@ document.addEventListener('DOMContentLoaded', () => {
   function doResetApp() {
     const msg =
       'Reset the app?\n\n' +
-      'This will permanently delete your saved PIN and all stored\n' +
-      'Ink Signatures / Designation Seals / Office Seals.\n\n' +
+      'This will permanently delete your saved PIN, all stored\n' +
+      'Ink Signatures / Designation Seals / Office Seals,\n' +
+      'and the entire document archive history.\n\n' +
       'The page will reload.';
     if (!confirm(msg)) return;
-    ['ink_signer_pin', 'saved_ink', 'saved_desig_seal', 'saved_office_seal']
-      .forEach(k => localStorage.removeItem(k));
+    [
+      'ink_signer_pin',
+      'saved_ink',
+      'saved_desig_seal',
+      'saved_office_seal',
+      'iss_archive_history',   // §ARCHIVE — cleared on full reset
+    ].forEach(k => localStorage.removeItem(k));
     location.reload();
   }
 
@@ -1201,12 +1371,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // Step 6: save and trigger download
       const finalBytes = await pdfLibDoc.save();
-      const blob = new Blob([finalBytes], { type: 'application/pdf' });
-      const url  = URL.createObjectURL(blob);
+      const blob     = new Blob([finalBytes], { type: 'application/pdf' });
+      const filename = 'signed-document.pdf';
+      const url      = URL.createObjectURL(blob);
       Object.assign(document.createElement('a'), {
-        href: url, download: 'signed-document.pdf',
+        href: url, download: filename,
       }).click();
       setTimeout(() => URL.revokeObjectURL(url), 10_000);
+
+      // ── Archive: persist a record of this download ───────────────
+      saveArchiveRecord(filename, blob.size);
 
     } catch (err) {
       console.error('Download error:', err);
