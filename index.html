@@ -309,6 +309,8 @@
       align-items: center;
     }
     .thumb-card .thumb-del:hover { background: #fee2e2; }
+    /* Rotate button shares thumb-del base; override colour on hover */
+    .thumb-card button[title="Rotate 90°"]:hover { background: #dbeafe !important; }
     .thumb-card .drag-handle {
       position: absolute;
       top: 5px;
@@ -439,6 +441,8 @@
         linear-gradient(to right,  rgba(0,0,0,0.025) 1px, transparent 1px),
         linear-gradient(to bottom, rgba(0,0,0,0.025) 1px, transparent 1px);
       background-size: 22px 22px;
+      /* FIX #5: allow smooth two-finger pan on touch devices */
+      touch-action: pan-x pan-y;
     }
 
     /* ══════════════════════════════════════════════════════════
@@ -781,12 +785,23 @@
             <span id="draw-btn-label">Start Drawing</span>
           </button>
 
+          <!-- FIX #4: Add Text button — places an editable IText on the canvas.
+               Colour is linked to the swatches below (script.js §7·5). -->
+          <button id="btn-add-text"
+                  class="w-full py-2.5 rounded-xl font-bold text-xs transition-all
+                         bg-surface-container-lowest text-on-surface-variant
+                         hover:bg-primary/5 hover:text-primary
+                         flex items-center justify-center gap-2 shadow-ambient-sm">
+            <span class="material-symbols-outlined text-base">text_fields</span>
+            Add Text
+          </button>
+
           <!-- Draw toolbar (hidden until draw mode ON) -->
           <div id="draw-toolbar" class="hidden flex-col gap-3">
             <!-- Colour swatches -->
             <div class="flex items-center justify-between">
               <span class="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">
-                Ink Color
+                Ink / Text Color
               </span>
               <div class="flex gap-2">
                 <button class="color-btn active w-7 h-7 rounded-full border-2 border-white shadow-sm"
@@ -876,12 +891,21 @@
            and #pdf-wrapper to switch between the two states — no class
            toggle is required and the CSS does not interfere.
       ──────────────────────────────────────────────────────────────── -->
-      <main class="flex-1 bg-surface-container-high overflow-y-auto
-                   flex flex-col items-center justify-start gap-4 p-4 md:p-8
+      <!-- ── MAIN CANVAS AREA ────────────────────────────────────────
+           FIX #1 (A3 Landscape Scrolling):
+           overflow-auto (both axes) replaces overflow-y-auto.
+           items-center removed — it was centring the canvas wrapper
+           horizontally but preventing the scrollbar from appearing on
+           the X axis for wide canvases (A3 landscape, etc.).
+           Content is left-aligned; the padding already provides visual
+           breathing room. On mobile the column stacks vertically.
+      ──────────────────────────────────────────────────────────────── -->
+      <main class="flex-1 bg-surface-container-high overflow-auto
+                   flex flex-col items-start justify-start gap-4 p-4 md:p-8
                    signature-canvas-bg">
 
         <!-- ─── Placeholder (shown until first upload) ─── -->
-        <div id="pdf-placeholder">
+        <div id="pdf-placeholder" class="self-center">
           <div class="mb-6 relative">
             <div class="w-24 h-32 bg-surface-container rounded-xl
                         shadow-[0_8px_24px_rgba(0,91,191,0.08)]
@@ -917,7 +941,7 @@
              script.js showSigningScreen()   → style.display='none'
         ─────────────────────────────────────────────────────────── -->
         <div id="organizer-screen"
-             class="w-full max-w-5xl bg-surface-container-lowest rounded-2xl
+             class="w-full self-center max-w-5xl bg-surface-container-lowest rounded-2xl
                     shadow-ambient p-6">
           <div class="flex items-center justify-between mb-5">
             <div>
