@@ -958,7 +958,7 @@ document.addEventListener('DOMContentLoaded', () => {
   /* ── Show/hide colour toolbar based on what is selected ──────────── */
   function _syncColorToolbarToSelection() {
     if (!fabricCanvas) return;
-    const obj = fabricCanvas.getActiveObject();
+    const obj    = fabricCanvas.getActiveObject();
     const isText = obj && (obj.type === 'i-text' || obj.type === 'textbox');
     if (isText && !isDrawingMode) {
       // Expose the colour swatches so the user can pick a text colour
@@ -968,6 +968,15 @@ document.addEventListener('DOMContentLoaded', () => {
       document.querySelectorAll('.color-btn').forEach(b => {
         b.classList.toggle('active', b.dataset.color === fill);
       });
+      // Sync the size slider to reflect the text object's current font size
+      const fontSize  = obj.get('fontSize') || 48;
+      const sliderVal = Math.round(fontSize / 3);
+      const clamped   = Math.max(
+        parseInt(brushSizeInput.min, 10) || 1,
+        Math.min(parseInt(brushSizeInput.max, 10) || 20, sliderVal)
+      );
+      brushSizeInput.value     = clamped;
+      brushSizeLbl.textContent = clamped;
     } else if (!isText && !isDrawingMode) {
       drawToolbar.style.display = 'none';
     }
@@ -1473,8 +1482,20 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   brushSizeInput.addEventListener('input', () => {
-    currentBrushSize         = parseInt(brushSizeInput.value, 10);
-    brushSizeLbl.textContent = currentBrushSize;
+    const sliderVal  = parseInt(brushSizeInput.value, 10);
+    currentBrushSize = sliderVal;
+    brushSizeLbl.textContent = sliderVal;
+
+    // If a text object is currently selected, drive its fontSize instead
+    if (fabricCanvas) {
+      const activeObj = fabricCanvas.getActiveObject();
+      if (activeObj && (activeObj.type === 'i-text' || activeObj.type === 'textbox')) {
+        activeObj.set('fontSize', sliderVal * 3);
+        fabricCanvas.requestRenderAll();
+        return; // Don't also apply brush settings
+      }
+    }
+
     if (isDrawingMode) applyBrushSettings();
   });
 
