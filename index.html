@@ -38,6 +38,15 @@
       darkMode: "class",
       theme: {
         extend: {
+          /* ── Custom breakpoint ──────────────────────────────────────
+             xs: 480px  — sits between the default "no prefix" (0px)
+             and sm (640px). Used in the header to show the brand name
+             and Reset button on medium-small phones but hide them on
+             the very smallest (< 480px) screens.
+          ─────────────────────────────────────────────────────────── */
+          screens: {
+            xs: '480px',
+          },
           colors: {
             "surface-container-high":    "#e6e8ea",
             "on-surface-variant":        "#414754",
@@ -286,7 +295,7 @@
       pointer-events: none;
     }
     .thumb-card .thumb-footer {
-      padding: 5px 8px 7px;
+      padding: 5px 6px 7px;
       font-size: 10px;
       font-family: 'Inter', sans-serif;
       font-weight: 600;
@@ -309,8 +318,10 @@
       align-items: center;
     }
     .thumb-card .thumb-del:hover { background: #fee2e2; }
-    /* Rotate button shares thumb-del base; override colour on hover */
-    .thumb-card button[title="Rotate 90°"]:hover { background: #dbeafe !important; }
+    /* Rotate / Move buttons share thumb-del base; override hover colour */
+    .thumb-card button[title="Rotate 90°"]:hover  { background: #dbeafe !important; }
+    .thumb-card button[title="Move Left"]:hover,
+    .thumb-card button[title="Move Right"]:hover   { background: #dbeafe !important; }
     .thumb-card .drag-handle {
       position: absolute;
       top: 5px;
@@ -380,6 +391,26 @@
       letter-spacing: .02em;
     }
 
+    /* ══ TEXT PLACING HINT BANNER ════════════════════════════
+       Injected by script.js §7·5 (enterTextPlacingMode).
+       Purple variant to differentiate from the blue stamp hint.
+    ══════════════════════════════════════════════════════════ */
+    #text-hint {
+      display: none;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 14px;
+      background: #7c3aed;
+      color: #fff;
+      font-family: 'Inter', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      border-radius: 10px;
+      box-shadow: 0 4px 14px rgba(124,58,237,.30);
+      user-select: none;
+      letter-spacing: .02em;
+    }
+
     /* ══ ARCHIVE DOCUMENT ROWS ═══════════════════════════════ */
     .doc-row {
       display: flex;
@@ -441,7 +472,7 @@
         linear-gradient(to right,  rgba(0,0,0,0.025) 1px, transparent 1px),
         linear-gradient(to bottom, rgba(0,0,0,0.025) 1px, transparent 1px);
       background-size: 22px 22px;
-      /* FIX #5: allow smooth two-finger pan on touch devices */
+      /* allow smooth two-finger pan on touch devices */
       touch-action: pan-x pan-y;
     }
 
@@ -547,9 +578,18 @@
 
   <!-- ══════════════════════════════════════════════════════════
        TOP NAVIGATION BAR
-       FIX #2:
-         • "Templates" nav-tab removed.
-         • Security "shield" icon button removed from the right.
+       ──────────────────────────────────────────────────────────
+       MOBILE HEADER FIX (Fix 4):
+         • Brand text "Ink Sign Studio" hidden below xs (480px) —
+           only the logo image is visible on very small phones.
+           Class: hidden xs:inline
+         • "E-sign Active" chip already hidden below sm (640px):
+           class hidden sm:flex — no change needed.
+         • Reset button text already hidden below sm (640px):
+           class hidden sm:inline — no change needed.
+         • The entire Reset button is hidden below xs (480px) to
+           prevent crowding on the very smallest screens.
+           Class changed from "flex items-center…" → "hidden xs:flex items-center…"
   ══════════════════════════════════════════════════════════════ -->
   <header class="w-full sticky top-0 z-40 bg-surface-bright
                  flex items-center justify-between px-4 md:px-8 h-14 md:h-16
@@ -566,7 +606,14 @@
         <span class="material-symbols-outlined text-xl">menu</span>
       </button>
 
-      <!-- Logo / Brand -->
+      <!-- Logo / Brand
+           ─────────────────────────────────────────────────────
+           MOBILE HEADER FIX: The brand text is hidden below the
+           custom xs (480px) breakpoint so only the logo image
+           shows on very small phones — preventing the header
+           from becoming overcrowded.
+           The logo image itself is always visible.
+      ─────────────────────────────────────────────────────────-->
       <a href="#" class="flex items-center gap-2.5 shrink-0">
         <img src="logo192.png" alt="Ink Sign Studio"
              class="w-7 h-7 md:w-8 md:h-8 rounded-lg object-contain"
@@ -575,27 +622,40 @@
              style="display:none">
           <span class="material-symbols-outlined text-base">history_edu</span>
         </div>
-        <span class="font-headline font-extrabold text-base md:text-lg tracking-tight text-on-surface">
+        <!-- Hidden below xs (480px), visible xs and above -->
+        <span class="hidden xs:inline font-headline font-extrabold text-base md:text-lg
+                     tracking-tight text-on-surface">
           Ink Sign Studio
         </span>
       </a>
 
-      <!-- SPA Nav Tabs — only Dashboard and Archive (Templates removed per Fix #2) -->
+      <!-- SPA Nav Tabs — only Dashboard and Archive -->
       <nav class="hidden md:flex gap-7 ml-2">
         <button class="nav-tab active" data-tab="dashboard">Dashboard</button>
         <button class="nav-tab"        data-tab="archive">Archive</button>
       </nav>
     </div>
 
-    <!-- Mobile bottom nav tabs (shown only on small screens, in place of the sidebar nav) -->
+    <!-- Mobile center nav tabs (shown only on small screens) -->
     <nav class="flex md:hidden items-center gap-4 absolute left-1/2 -translate-x-1/2">
       <button class="nav-tab active text-sm" data-tab="dashboard">Dashboard</button>
       <button class="nav-tab text-sm"        data-tab="archive">Archive</button>
     </nav>
 
-    <!-- Right: Actions -->
+    <!-- Right: Actions
+         ───────────────────────────────────────────────────────
+         MOBILE HEADER FIX:
+           • "E-sign Active" chip — hidden sm:flex (unchanged):
+             invisible below 640px, visible on sm+.
+           • Reset button — changed to hidden xs:flex: invisible
+             below 480px, shows as icon-only (xs–sm) or
+             icon+text (sm+). This prevents a lone icon from
+             jostling the absolutely-centred tab pills on the
+             very smallest phones (< 480px).
+    ──────────────────────────────────────────────────────────-->
     <div class="flex items-center gap-2">
-      <!-- E-Sign Active status chip -->
+
+      <!-- E-sign Active status chip: hidden below sm (640px) -->
       <div class="hidden sm:flex items-center gap-1.5 bg-tertiary-fixed/60
                   px-3 py-1.5 rounded-full mr-2">
         <span class="material-symbols-outlined text-sm text-on-tertiary-fixed"
@@ -604,10 +664,11 @@
           E-Sign Active
         </span>
       </div>
-      <!-- Reset App button -->
+
+      <!-- Reset App button: hidden below xs (480px), icon-only below sm (640px) -->
       <button id="btn-reset-app"
               title="Reset App — clears PIN, stamps and archive history"
-              class="flex items-center gap-1.5 px-2 md:px-3 py-1.5 rounded-lg
+              class="hidden xs:flex items-center gap-1.5 px-2 md:px-3 py-1.5 rounded-lg
                      text-[11px] font-bold text-red-500
                      hover:bg-red-50 transition-all">
         <span class="material-symbols-outlined text-sm">delete_sweep</span>
@@ -680,10 +741,12 @@
           <h3 class="font-label text-[10px] tracking-widest uppercase font-bold text-on-surface-variant">
             Document Organizer
           </h3>
+          <!-- MOBILE REORDER FIX: hint updated to mention ← → buttons for mobile users -->
           <p class="text-[10px] text-on-surface-variant leading-relaxed">
-            Drag thumbnails to reorder · tap
+            Tap <span class="font-bold text-primary">←&nbsp;→</span> to reorder pages ·
+            drag thumbnails on desktop · tap
             <span class="material-symbols-outlined text-[11px] align-middle">close</span>
-            to remove a page · upload more PDFs above.
+            to remove · upload more PDFs above.
           </p>
 
           <!-- Page count badge -->
@@ -785,8 +848,10 @@
             <span id="draw-btn-label">Start Drawing</span>
           </button>
 
-          <!-- FIX #4: Add Text button — places an editable IText on the canvas.
-               Colour is linked to the swatches below (script.js §7·5). -->
+          <!-- Add Text — ghost click-to-place UX (script.js §7·5).
+               Clicking enters textPlacingMode: a purple hint banner
+               appears and a ghost IText follows the cursor; clicking
+               on the canvas places the real IText at the exact point. -->
           <button id="btn-add-text"
                   class="w-full py-2.5 rounded-xl font-bold text-xs transition-all
                          bg-surface-container-lowest text-on-surface-variant
@@ -796,7 +861,7 @@
             Add Text
           </button>
 
-          <!-- Draw toolbar (hidden until draw mode ON) -->
+          <!-- Draw toolbar (hidden until draw mode ON or text selected) -->
           <div id="draw-toolbar" class="hidden flex-col gap-3">
             <!-- Colour swatches -->
             <div class="flex items-center justify-between">
@@ -883,22 +948,9 @@
 
 
       <!-- ── MAIN CANVAS AREA ────────────────────────────────────────
-           FIX #1 & #4:
            flex-1 expands to fill remaining width beside the sidebar.
-           overflow-y:auto lets both the organizer grid (many thumbnails)
-           and the signing canvas (tall PDFs) scroll within this pane.
-           script.js directly sets style.display on #organizer-screen
-           and #pdf-wrapper to switch between the two states — no class
-           toggle is required and the CSS does not interfere.
-      ──────────────────────────────────────────────────────────────── -->
-      <!-- ── MAIN CANVAS AREA ────────────────────────────────────────
-           FIX #1 (A3 Landscape Scrolling):
-           overflow-auto (both axes) replaces overflow-y-auto.
-           items-center removed — it was centring the canvas wrapper
-           horizontally but preventing the scrollbar from appearing on
-           the X axis for wide canvases (A3 landscape, etc.).
-           Content is left-aligned; the padding already provides visual
-           breathing room. On mobile the column stacks vertically.
+           overflow-auto (both axes) allows wide/tall PDFs to scroll.
+           On mobile the column stacks vertically (CSS media query).
       ──────────────────────────────────────────────────────────────── -->
       <main class="flex-1 bg-surface-container-high overflow-auto
                    flex flex-col items-start justify-start gap-4 p-4 md:p-8
@@ -946,8 +998,9 @@
           <div class="flex items-center justify-between mb-5">
             <div>
               <h2 class="font-headline font-bold text-lg text-on-surface">Document Organizer</h2>
+              <!-- MOBILE REORDER FIX: subtitle updated to mention ← → buttons -->
               <p class="text-xs text-on-surface-variant mt-0.5">
-                Drag pages to reorder · click × to remove · upload more PDFs above
+                Tap ← → to reorder · drag on desktop · click × to remove · upload more PDFs above
               </p>
             </div>
             <!-- Inline spinner while thumbnails render -->
@@ -974,7 +1027,6 @@
         </div>
 
         <!-- ─── Step 2: SIGNING CANVAS ────────────────────────────
-             FIX #4:
              Starts hidden via inline style="display:none".
              script.js showSigningScreen()   → style.display='inline-block'
              script.js showOrganizerScreen() → style.display='none'
@@ -986,7 +1038,7 @@
           <canvas id="fabric-canvas-el"></canvas>
           <div id="page-info"></div>
         </div>
-        <!-- Pagination bar injected here at runtime by script.js -->
+        <!-- Stamp hint, text hint, and pagination bar injected here at runtime by script.js -->
 
       </main>
 
@@ -1094,7 +1146,7 @@
 
 <!-- ════════════════════════════════════════════════════════════
      PIN SCREEN
-     FIX #3: #pin-input white background + clear border are
+     #pin-input white background + clear border are
      enforced via `#pin-input { ... !important }` in <style>
      above — no inline style attributes needed here.
 ════════════════════════════════════════════════════════════ -->
