@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════════════
-   Ink Sign Studio — script.js  (v11)
+   Ink Sign Studio — script.js  (v12)
    ─────────────────────────────────────────────────────────────────────
    §SPA  Tab-switching (Dashboard / Archive)
    §1    PIN screen  +  Forgot-PIN / Reset-App
@@ -9,13 +9,15 @@
    §0    Document Organizer
          ┌── Organizer Pipeline ───────────────────────────────────────┐
          │  Upload (multiple PDFs) → pdf.js thumbnail render           │
-         │  → HTML5 drag-and-drop reorder → page delete                │
-         │  → page rotate (90° increments, stored in orgPages[].rot)   │
-         │  → "Proceed to Sign" → pdf-lib merge (eOffice flatten)      │
-         │  → hand off to §4 signing canvas                            │
+         │  → HTML5 drag-and-drop reorder + ←/→ mobile buttons        │
+         │  → page delete                                              │
+         │  → page rotate (90° increments, stored in orgPages[].rot)  │
+         │  → "Proceed to Sign" → pdf-lib merge (eOffice flatten)     │
+         │  → hand off to §4 signing canvas                           │
          └─────────────────────────────────────────────────────────────┘
    §4    PDF load from bytes → pdf.js render
    §5    Fabric.js canvas  (single instance, never disposed)
+         allowTouchScrolling = true for mobile page scrolling
    §6    Image-based Stamps  (Ink Signature / Designation Seal / Office Seal)
          ┌── Image Processing & Storage Pipeline ──────────────────────┐
          │  ① Auto Background Removal  — white/light-grey → transparent│
@@ -26,7 +28,7 @@
          │  ⑤  Auto-Load on Start     — sidebar preview + trash button │
          └─────────────────────────────────────────────────────────────┘
    §7    Freehand draw tool
-   §7·5  Add Text tool (fabric.IText — colour-linked to swatches)
+   §7·5  Add Text tool (ghost click-to-place UX, colour-linked to swatches)
    §8    Delete  (button + Delete/Backspace key)
    §9    Download  — pdf-lib, rotation-aware, BlendMode.Multiply on top
                      eOffice form flattening before save
@@ -404,6 +406,7 @@ document.addEventListener('DOMContentLoaded', () => {
          → for each PDF, extract all pages → push into orgPages[]
          → renderThumbnails() builds the draggable grid
        Drag & drop (native HTML5) reorders orgPages[]
+       ← / → mobile buttons also reorder by swapping adjacent items
        Rotate button increments orgPages[n].rotation by 90° (mod 360)
        Delete button splices orgPages[], re-renders grid
        "Proceed to Sign" → mergeAndLoad()
@@ -499,7 +502,13 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   /* renderThumbnails — rebuilds the entire #thumb-grid DOM from orgPages[].
-     Each card now has: drag handle · display canvas · label · rotate btn · delete btn */
+     Each card now has:
+       drag handle · display canvas · label
+       · ← Move Left · → Move Right  (mobile-friendly reorder buttons)
+       · rotate btn · delete btn
+     ─────────────────────────────────────────────────────────────────
+     MOBILE REORDER FIX: ← and → buttons swap the tapped card with its
+     neighbour in orgPages[], then re-render. Disabled (muted) at edges. */
   function renderThumbnails() {
     thumbGrid.innerHTML = '';
     orgPageCount.textContent = `${orgPages.length} page${orgPages.length !== 1 ? 's' : ''}`;
@@ -523,13 +532,41 @@ document.addEventListener('DOMContentLoaded', () => {
       display.height   = rotatedSrc.height;
       display.getContext('2d').drawImage(rotatedSrc, 0, 0);
 
-      // Footer: label + rotate button + delete button
+      // Footer: label + move buttons + rotate button + delete button
       const footer = document.createElement('div');
       footer.className = 'thumb-footer';
 
       const labelEl = document.createElement('span');
       labelEl.textContent   = pg.label;
-      labelEl.style.cssText = 'flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:62px;font-size:10px;';
+      labelEl.style.cssText = 'flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:52px;font-size:10px;';
+
+      // ── MOBILE REORDER: Move Left (←) button ──────────────────────
+      const moveLeftBtn = document.createElement('button');
+      moveLeftBtn.className = 'thumb-del';
+      moveLeftBtn.title     = 'Move Left';
+      const isFirst         = idx === 0;
+      moveLeftBtn.style.cssText = `color:#005bbf;margin-right:1px;${isFirst ? 'opacity:.22;pointer-events:none;' : ''}`;
+      moveLeftBtn.innerHTML = '<span class="material-symbols-outlined" style="font-size:14px">chevron_left</span>';
+      moveLeftBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (idx === 0) return;
+        [orgPages[idx - 1], orgPages[idx]] = [orgPages[idx], orgPages[idx - 1]];
+        renderThumbnails();
+      });
+
+      // ── MOBILE REORDER: Move Right (→) button ─────────────────────
+      const moveRightBtn = document.createElement('button');
+      moveRightBtn.className = 'thumb-del';
+      moveRightBtn.title     = 'Move Right';
+      const isLast           = idx === orgPages.length - 1;
+      moveRightBtn.style.cssText = `color:#005bbf;margin-right:2px;${isLast ? 'opacity:.22;pointer-events:none;' : ''}`;
+      moveRightBtn.innerHTML = '<span class="material-symbols-outlined" style="font-size:14px">chevron_right</span>';
+      moveRightBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (idx === orgPages.length - 1) return;
+        [orgPages[idx], orgPages[idx + 1]] = [orgPages[idx + 1], orgPages[idx]];
+        renderThumbnails();
+      });
 
       // ── FIX #3: Rotate button ──────────────────────────────────────
       const rotBtn = document.createElement('button');
@@ -553,7 +590,7 @@ document.addEventListener('DOMContentLoaded', () => {
         renderThumbnails();
       });
 
-      footer.append(labelEl, rotBtn, delBtn);
+      footer.append(labelEl, moveLeftBtn, moveRightBtn, rotBtn, delBtn);
 
       // Drag-handle grip dots (decorative)
       const handle = document.createElement('div');
@@ -768,6 +805,10 @@ document.addEventListener('DOMContentLoaded', () => {
      Calling dispose() + new fabric.Canvas() removes the original
      <canvas> element from the DOM, permanently breaking re-init.
      We avoid this by using setWidth/setHeight + clear() instead.
+
+     allowTouchScrolling = true  lets the browser handle vertical pan
+     gestures on mobile when the user is not actively drawing/stamping,
+     so the page remains scrollable by touch on the canvas area.
   ════════════════════════════════════════════════════════════════════ */
   function initFabricCanvas(width, height) {
     if (fabricCanvas) return;   // guard: created once only
@@ -784,6 +825,10 @@ document.addEventListener('DOMContentLoaded', () => {
       renderOnAddRemove:      true,
       enableRetinaScaling:    false,
     });
+
+    // ── MOBILE SCROLL FIX: allow touch events to propagate for page scrolling
+    //    when the user is not in an active drawing/stamping interaction.
+    fabricCanvas.allowTouchScrolling = true;
 
     Object.assign(fabricCanvas.wrapperEl.style, {
       position: 'absolute', top: '0', left: '0',
@@ -807,50 +852,101 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!isDrawingMode) drawToolbar.style.display = 'none';
     });
 
-    // ── Ghost follower: track cursor during stamping mode ──────────────
+    // ── Ghost follower: track cursor during stamping OR text-placing mode ──
     fabricCanvas.on('mouse:move', (opt) => {
-      if (!stampingMode || !ghostStamp) return;
       const p = opt.pointer;
-      ghostStamp.set({
-        left: p.x - ghostStamp.getScaledWidth()  / 2,
-        top:  p.y - ghostStamp.getScaledHeight() / 2,
-      });
-      ghostStamp.setCoords();
-      fabricCanvas.requestRenderAll();
+
+      if (stampingMode && ghostStamp) {
+        ghostStamp.set({
+          left: p.x - ghostStamp.getScaledWidth()  / 2,
+          top:  p.y - ghostStamp.getScaledHeight() / 2,
+        });
+        ghostStamp.setCoords();
+        fabricCanvas.requestRenderAll();
+      }
+
+      if (textPlacingMode && ghostText) {
+        ghostText.set({ left: p.x, top: p.y });
+        ghostText.setCoords();
+        fabricCanvas.requestRenderAll();
+      }
     });
 
-    // ── Stamping mode: place real stamp at the click point ─────────────
+    // ── Click handler: place stamp OR place text at exact click point ──
     fabricCanvas.on('mouse:down', (opt) => {
-      if (!stampingMode || !pendingStampDataUrl) return;
 
-      const pointer = opt.pointer;
-      const dataUrl = pendingStampDataUrl;
-      const color   = pendingStampColor;
+      // Stamping mode: place real stamp at the click point
+      if (stampingMode && pendingStampDataUrl) {
+        const pointer = opt.pointer;
+        const dataUrl = pendingStampDataUrl;
+        const color   = pendingStampColor;
 
-      exitStampingMode();
+        exitStampingMode();
 
-      fabric.Image.fromURL(dataUrl, (imgObj) => {
-        const MAX_W = fabricCanvas.width * 0.30;
-        if (imgObj.width > MAX_W) imgObj.scaleToWidth(MAX_W);
+        fabric.Image.fromURL(dataUrl, (imgObj) => {
+          const MAX_W = fabricCanvas.width * 0.30;
+          if (imgObj.width > MAX_W) imgObj.scaleToWidth(MAX_W);
 
-        imgObj.set({
-          left:               pointer.x - imgObj.getScaledWidth()  / 2,
-          top:                pointer.y - imgObj.getScaledHeight() / 2,
-          opacity:            1,
+          imgObj.set({
+            left:               pointer.x - imgObj.getScaledWidth()  / 2,
+            top:                pointer.y - imgObj.getScaledHeight() / 2,
+            opacity:            1,
+            hasControls:        true,
+            hasBorders:         true,
+            borderColor:        color,
+            cornerColor:        color,
+            cornerSize:         10,
+            transparentCorners: false,
+            cornerStyle:        'circle',
+            borderDashArray:    [4, 3],
+          });
+
+          fabricCanvas.add(imgObj);
+          fabricCanvas.setActiveObject(imgObj);
+          fabricCanvas.requestRenderAll();
+        }, { crossOrigin: null });
+
+        return;
+      }
+
+      // Text placing mode: place IText at exact click point and enter editing
+      if (textPlacingMode) {
+        const pointer  = opt.pointer;
+        const fontSize = Math.max(16, Math.round(fabricCanvas.width * 0.025));
+
+        exitTextPlacingMode();
+
+        const textObj = new fabric.IText('Type here', {
+          left:               pointer.x,
+          top:                pointer.y,
+          originX:            'left',
+          originY:            'top',
+          fontFamily:         'Inter, Arial, sans-serif',
+          fontSize,
+          fill:               currentInkColor,
+          fontWeight:         '600',
           hasControls:        true,
           hasBorders:         true,
-          borderColor:        color,
-          cornerColor:        color,
+          borderColor:        currentInkColor,
+          cornerColor:        currentInkColor,
           cornerSize:         10,
           transparentCorners: false,
           cornerStyle:        'circle',
           borderDashArray:    [4, 3],
+          editable:           true,
         });
 
-        fabricCanvas.add(imgObj);
-        fabricCanvas.setActiveObject(imgObj);
+        fabricCanvas.add(textObj);
+        fabricCanvas.setActiveObject(textObj);
+        textObj.enterEditing();
+        textObj.selectAll();
         fabricCanvas.requestRenderAll();
-      }, { crossOrigin: null });
+
+        // Reveal colour toolbar so the user can immediately pick a text colour
+        if (!isDrawingMode) drawToolbar.style.display = 'flex';
+
+        return;
+      }
     });
 
     fabricCanvas.freeDrawingBrush          = new fabric.PencilBrush(fabricCanvas);
@@ -1022,7 +1118,11 @@ document.addEventListener('DOMContentLoaded', () => {
   let pendingStampColor   = null;
   let ghostStamp          = null;
 
-  // Hint banner — injected once above the paginationBar
+  // ── TEXT PLACING MODE state ────────────────────────────────────────
+  let textPlacingMode = false;
+  let ghostText       = null;
+
+  // Stamp hint banner — injected once above the paginationBar
   const stampHint = (() => {
     const el = document.createElement('div');
     el.id    = 'stamp-hint';
@@ -1044,9 +1144,32 @@ document.addEventListener('DOMContentLoaded', () => {
     return el;
   })();
 
+  // ── Text hint banner — injected above paginationBar (alongside stampHint) ──
+  const textHint = (() => {
+    const el = document.createElement('div');
+    el.id    = 'text-hint';
+    el.style.cssText = `
+      display: none; align-items: center; gap: 8px;
+      padding: 7px 14px; background: #7c3aed; color: #fff;
+      font-family: Inter, sans-serif; font-size: 11px; font-weight: 700;
+      border-radius: 8px; box-shadow: 0 4px 14px rgba(124,58,237,.30);
+      user-select: none; letter-spacing: .02em;
+    `;
+    el.innerHTML = `
+      <span class="material-symbols-outlined" style="font-size:16px;vertical-align:middle;">text_fields</span>
+      Click on the document to place text &nbsp;·&nbsp;
+      <span id="text-hint-cancel"
+            style="cursor:pointer;text-decoration:underline;opacity:.85;">Cancel (Esc)</span>
+    `;
+    paginationBar.parentNode.insertBefore(el, paginationBar);
+    el.querySelector('#text-hint-cancel').addEventListener('click', exitTextPlacingMode);
+    return el;
+  })();
+
   function enterStampingMode(dataUrl, color) {
     if (!fabricCanvas) { alert('ആദ്യം ഒരു PDF അപ്‌ലോഡ് ചെയ്യുക!'); return; }
     setDrawingMode(false);
+    exitTextPlacingMode();
     fabricCanvas.discardActiveObject();
 
     stampingMode        = true;
@@ -1099,8 +1222,64 @@ document.addEventListener('DOMContentLoaded', () => {
     stampHint.style.display = 'none';
   }
 
+  /* ── Text placing mode: enter / exit ─────────────────────────────── */
+  function enterTextPlacingMode() {
+    if (!fabricCanvas) { alert('ആദ്യം ഒരു PDF അപ്‌ലോഡ് ചെയ്യുക!'); return; }
+    setDrawingMode(false);
+    exitStampingMode();
+    fabricCanvas.discardActiveObject();
+
+    textPlacingMode = true;
+
+    fabricCanvas.defaultCursor = 'crosshair';
+    fabricCanvas.hoverCursor   = 'crosshair';
+
+    textHint.style.display = 'flex';
+
+    // Create semi-transparent ghost text that follows the cursor
+    const fontSize = Math.max(16, Math.round(fabricCanvas.width * 0.025));
+    const gt = new fabric.IText('Type here', {
+      left:        -9999,
+      top:         -9999,
+      originX:     'left',
+      originY:     'top',
+      fontFamily:  'Inter, Arial, sans-serif',
+      fontSize,
+      fill:        currentInkColor,
+      fontWeight:  '600',
+      opacity:     0.42,
+      selectable:  false,
+      evented:     false,
+      hasControls: false,
+      hasBorders:  false,
+      editable:    false,
+    });
+    ghostText = gt;
+    fabricCanvas.add(ghostText);
+    fabricCanvas.requestRenderAll();
+  }
+
+  function exitTextPlacingMode() {
+    textPlacingMode = false;
+
+    if (ghostText && fabricCanvas) {
+      fabricCanvas.remove(ghostText);
+      fabricCanvas.requestRenderAll();
+    }
+    ghostText = null;
+
+    if (fabricCanvas) {
+      fabricCanvas.defaultCursor = 'default';
+      fabricCanvas.hoverCursor   = 'move';
+    }
+
+    textHint.style.display = 'none';
+  }
+
+  // Escape key exits both stamping and text placing modes
   document.addEventListener('keydown', e => {
-    if (e.key === 'Escape' && stampingMode) exitStampingMode();
+    if (e.key === 'Escape' && stampingMode)      exitStampingMode();
+    if (e.key === 'Escape' && textPlacingMode)   exitTextPlacingMode();
   });
 
   function addStampToCanvas(dataUrl, color) {
@@ -1307,53 +1486,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
   /* ════════════════════════════════════════════════════════════════════
-     §7·5  ADD TEXT TOOL
+     §7·5  ADD TEXT TOOL  —  ghost click-to-place UX
      ──────────────────────────────────────────────────────────────────
-     Adds an editable fabric.IText at the centre of the canvas.
-     The colour is seeded from the currently active colour swatch so it
-     matches the user's last-chosen ink colour.
-     After placing, the colour toolbar is revealed so the user can
-     immediately change the text colour via the swatches.
+     Mirrors the Image Stamp flow:
+       1. Click "Add Text" → enters textPlacingMode
+          · cursor becomes crosshair
+          · purple hint banner appears: "Click on the document to place text"
+          · a semi-transparent ghost IText follows the cursor
+       2. Click anywhere on the canvas → ghost is removed, a real
+          editable fabric.IText is placed at the exact pointer coordinate
+          and immediately enters editing mode (cursor blinks, text selected)
+       3. Colour toolbar is revealed so the user can change text colour
+       4. Pressing Esc or clicking "Cancel" exits without placing anything
+     ──────────────────────────────────────────────────────────────────
+     The colour is seeded from the currently active colour swatch.
   ════════════════════════════════════════════════════════════════════ */
   document.getElementById('btn-add-text')?.addEventListener('click', () => {
     if (!fabricCanvas) { alert('ആദ്യം ഒരു PDF അപ്‌ലോഡ് ചെയ്യുക!'); return; }
-
-    // Exit draw / stamp modes before adding text
-    setDrawingMode(false);
-    exitStampingMode();
-
-    const textObj = new fabric.IText('Type here', {
-      left:        fabricCanvas.width  / 2,
-      top:         fabricCanvas.height / 2,
-      originX:     'center',
-      originY:     'center',
-      fontFamily:  'Inter, Arial, sans-serif',
-      fontSize:    Math.max(16, Math.round(fabricCanvas.width * 0.025)),
-      fill:        currentInkColor,
-      fontWeight:  '600',
-      hasControls: true,
-      hasBorders:  true,
-      borderColor: currentInkColor,
-      cornerColor: currentInkColor,
-      cornerSize:  10,
-      transparentCorners: false,
-      cornerStyle: 'circle',
-      borderDashArray: [4, 3],
-      editable:    true,
-    });
-
-    fabricCanvas.add(textObj);
-    fabricCanvas.setActiveObject(textObj);
-
-    // Enter editing mode immediately so the user can type right away
-    textObj.enterEditing();
-    textObj.selectAll();
-    fabricCanvas.requestRenderAll();
-
-    // Reveal colour toolbar so the user can pick a text colour
-    if (!isDrawingMode) drawToolbar.style.display = 'flex';
-
-    // Close mobile sidebar so the canvas is fully visible after inserting text
+    enterTextPlacingMode();
+    // Close mobile sidebar so the canvas is fully visible while placing text
     _closeSidebar();
   });
 
