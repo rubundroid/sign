@@ -145,6 +145,7 @@
       display: flex;
       flex-direction: column;
       flex: 1;
+      min-height: 0; /* allow flex item to shrink below content size so children can scroll */
     }
     /* Dashboard is a flex ROW (sidebar + main), clipped at viewport */
     #tab-dashboard.active {
@@ -191,14 +192,24 @@
       top: 0 !important;
       left: 0 !important;
       mix-blend-mode: multiply;
-      /* Fix 1: allow the browser to handle vertical touch-scroll on mobile
-         when the user is not actively drawing or stamping.
-         Works in tandem with fabricCanvas.allowTouchScrolling = true (script.js §5). */
-      touch-action: manipulation !important;
+      /* Mobile scroll fix: allow native pan gestures so the page can scroll
+         while Fabric is in selection/stamp/text mode.
+         The .drawing-active override below re-enables full capture for drawing.
+         CSS !important beats Fabric's inline style.touchAction assignments. */
+      touch-action: pan-x pan-y !important;
     }
-    /* Fix 1: same touch-action on the upper (event-capture) canvas layer */
+    /* Same pan-x pan-y on the upper (event-capture) canvas layer */
     .upper-canvas {
-      touch-action: manipulation !important;
+      touch-action: pan-x pan-y !important;
+    }
+    /* While freehand drawing, the browser must NOT intercept touch gestures —
+       Fabric needs every pointer event to render strokes correctly.
+       script.js setDrawingMode() toggles .drawing-active on wrapperEl. */
+    .drawing-active.canvas-container {
+      touch-action: none !important;
+    }
+    .drawing-active .upper-canvas {
+      touch-action: none !important;
     }
 
     /* ── PDF placeholder ──────────────────────────────────── */
@@ -539,10 +550,13 @@
       #app-sidebar.sidebar-open {
         transform: translateX(0);
       }
-      /* Main canvas area stacks vertically on mobile */
+      /* Main canvas area stacks vertically on mobile.
+         overflow:hidden (not auto) is critical — it bounds the flex column so
+         <main>'s own overflow-auto can create real scrollbars. If this were
+         overflow:auto, <main> would expand to fit content and never scroll. */
       #tab-dashboard.active {
         flex-direction: column;
-        overflow: auto;
+        overflow: hidden;
       }
       /* PDF placeholder can be narrower on mobile */
       #pdf-placeholder {
@@ -971,10 +985,16 @@
 
       <!-- ── MAIN CANVAS AREA ────────────────────────────────────────
            flex-1 expands to fill remaining width beside the sidebar.
+           min-h-0: prevents the flex item from growing past the bounded
+             parent height (default min-height:auto would defeat flex
+             shrinking, making overflow-auto never trigger vertically).
+           min-w-0: prevents the flex item from expanding horizontally
+             to fit a wide PDF canvas — overflow-auto creates a scrollbar
+             instead, keeping the viewport stable.
            overflow-auto (both axes) allows wide/tall PDFs to scroll.
            On mobile the column stacks vertically (CSS media query).
       ──────────────────────────────────────────────────────────────── -->
-      <main class="flex-1 bg-surface-container-high overflow-auto
+      <main class="flex-1 min-h-0 min-w-0 bg-surface-container-high overflow-auto
                    flex flex-col items-start justify-start gap-4 p-4 md:p-8
                    signature-canvas-bg">
 
