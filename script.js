@@ -819,11 +819,28 @@ document.addEventListener('DOMContentLoaded', () => {
       preserveObjectStacking: true,
       renderOnAddRemove:      true,
       enableRetinaScaling:    false,
+      allowTouchScrolling:    true,   // Fabric: don't capture scroll-intent touches
     });
 
     // ── MOBILE SCROLL FIX: allow touch events to propagate for page scrolling
     //    when the user is not in an active drawing/stamping interaction.
     fabricCanvas.allowTouchScrolling = true;
+
+    // ── TOUCH-ACTION CSS HANDOFF ──────────────────────────────────────────
+    // Fabric 5.x may apply touch-action:none inline during canvas init,
+    // before our CSS !important rules are evaluated. Strip any inline
+    // touch-action so the stylesheet takes full control:
+    //   • Normal mode  → CSS: .canvas-container / .upper-canvas   → pan-x pan-y
+    //   • Drawing mode → CSS: .drawing-active .upper-canvas       → none
+    // Using requestAnimationFrame ensures this runs after Fabric's own
+    // post-constructor event-listener setup (_initEventListeners).
+    requestAnimationFrame(() => {
+      [
+        fabricCanvas.upperCanvasEl,
+        fabricCanvas.lowerCanvasEl,
+        fabricCanvas.wrapperEl,
+      ].forEach(el => el && el.style.removeProperty('touch-action'));
+    });
 
     Object.assign(fabricCanvas.wrapperEl.style, {
       position: 'absolute', top: '0', left: '0',
@@ -1423,6 +1440,20 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!fabricCanvas) return;
     isDrawingMode              = active;
     fabricCanvas.isDrawingMode = active;
+
+    // Belt-and-suspenders touch-action: CSS .drawing-active handles most cases,
+    // but some Fabric internal events re-apply inline styles; the explicit
+    // inline assignment here ensures the correct value wins immediately.
+    // drawing ON  → none     (Fabric captures every pointer event for stroke rendering)
+    // drawing OFF → remove   (CSS pan-x pan-y from stylesheet takes over)
+    [fabricCanvas.upperCanvasEl, fabricCanvas.wrapperEl].forEach(el => {
+      if (!el) return;
+      if (active) {
+        el.style.touchAction = 'none';
+      } else {
+        el.style.removeProperty('touch-action');
+      }
+    });
 
     if (active) {
       applyBrushSettings();
