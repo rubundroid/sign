@@ -330,7 +330,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const pageDimensions = new Map();
 
   // Organizer state
-  // Each entry: { srcBytes, srcPageIndex, label, thumbCanvas, rotation }
+  // Each entry: { srcBytes, srcPageIndex, label, thumbDataUrl, rotation }
   // rotation: 0 | 90 | 180 | 270  (degrees, clockwise)
   let orgPages   = [];
   let dragSrcIdx = null;
@@ -465,11 +465,16 @@ document.addEventListener('DOMContentLoaded', () => {
         tc.height    = viewport.height;
         await page.render({ canvasContext: tc.getContext('2d'), viewport }).promise;
 
+        // Convert to a lightweight JPEG data URL immediately so the heavy
+        // canvas element can be garbage-collected, preventing memory leaks
+        // on mobile devices when many pages are loaded.
+        const dataUrl = tc.toDataURL('image/jpeg', 0.6);
+
         orgPages.push({
           srcBytes:     bytes,
           srcPageIndex: i,
           label:        `${file.name.replace(/\.pdf$/i, '')}  p.${i + 1}`,
-          thumbCanvas:  tc,
+          thumbDataUrl: dataUrl,
           rotation:     0,    // ── FIX #3: rotation state (0|90|180|270)
         });
       }
@@ -478,27 +483,6 @@ document.addEventListener('DOMContentLoaded', () => {
     orgSpinner.classList.add('hidden');
     hideLoader();
     renderThumbnails();
-  }
-
-  /* ── FIX #3 HELPER: return a new canvas with src rotated by `degrees` ──
-     Handles 90/180/270; returns src unchanged for 0.
-     Used to visually display the rotated thumbnail in the organizer grid. */
-  function getRotatedCanvas(src, degrees) {
-    if (!degrees || degrees === 0) return src;
-    const rad  = degrees * Math.PI / 180;
-    const swap = degrees === 90 || degrees === 270;
-    const destW = swap ? src.height : src.width;
-    const destH = swap ? src.width  : src.height;
-    const dest  = document.createElement('canvas');
-    dest.width  = destW;
-    dest.height = destH;
-    const ctx   = dest.getContext('2d');
-    ctx.save();
-    ctx.translate(destW / 2, destH / 2);
-    ctx.rotate(rad);
-    ctx.drawImage(src, -src.width / 2, -src.height / 2);
-    ctx.restore();
-    return dest;
   }
 
   /* renderThumbnails — rebuilds the entire #thumb-grid DOM from orgPages[].
@@ -525,12 +509,16 @@ document.addEventListener('DOMContentLoaded', () => {
       card.draggable   = true;
       card.dataset.idx = idx;
 
-      // ── FIX #3: render the thumbnail with any stored rotation applied ──
-      const rotatedSrc = getRotatedCanvas(pg.thumbCanvas, pg.rotation);
-      const display    = document.createElement('canvas');
-      display.width    = rotatedSrc.width;
-      display.height   = rotatedSrc.height;
-      display.getContext('2d').drawImage(rotatedSrc, 0, 0);
+      // Use a lightweight <img> with CSS rotation instead of creating
+      // additional canvas objects, eliminating the canvas memory leak.
+      const display = document.createElement('img');
+      display.src = pg.thumbDataUrl;
+      display.style.transform = `rotate(${pg.rotation || 0}deg)`;
+      display.style.display = 'block';
+      display.style.width = '100%';
+      display.style.height = 'auto';
+      display.style.borderRadius = '10px 10px 0 0';
+      display.style.pointerEvents = 'none';
 
       // Footer: label + move buttons + rotate button + delete button
       const footer = document.createElement('div');
