@@ -191,6 +191,14 @@
       top: 0 !important;
       left: 0 !important;
       mix-blend-mode: multiply;
+      /* Fix 1: allow the browser to handle vertical touch-scroll on mobile
+         when the user is not actively drawing or stamping.
+         Works in tandem with fabricCanvas.allowTouchScrolling = true (script.js §5). */
+      touch-action: manipulation !important;
+    }
+    /* Fix 1: same touch-action on the upper (event-capture) canvas layer */
+    .upper-canvas {
+      touch-action: manipulation !important;
     }
 
     /* ── PDF placeholder ──────────────────────────────────── */
@@ -760,6 +768,15 @@
             <span id="org-page-count"
                   class="text-xs font-bold text-primary font-headline">0 pages</span>
           </div>
+
+          <!-- Clear All Pages -->
+          <button id="btn-clear-organizer"
+                  class="w-full py-2 rounded-lg font-bold text-xs
+                         flex items-center justify-center gap-2
+                         text-red-500 hover:bg-red-50 transition-all">
+            <span class="material-symbols-outlined text-base">delete_sweep</span>
+            Clear All Pages
+          </button>
 
           <!-- Proceed to Sign -->
           <button id="btn-proceed-sign"
