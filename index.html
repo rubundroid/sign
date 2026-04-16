@@ -607,12 +607,12 @@
           flex-direction: column;
           overflow: hidden;
         }
-        /* <main> must fill the remaining height after the header and be
-         the scroll container for wide / tall PDF canvases on mobile.
-         -webkit-overflow-scrolling:touch enables momentum scrolling on
-         older iOS Safari; overflow:auto is already set via Tailwind but
-         we repeat it here to be explicit and ensure it wins on mobile. */
+        /* On mobile, switch <main> from flex to block so the PDF canvas
+         can expand naturally and #pdf-scroll-container handles scrolling.
+         flex:1 is preserved via explicit height so it still fills the
+         remaining space below the header. */
         #tab-dashboard.active > main {
+          display: block;
           flex: 1 1 0%;
           min-height: 0;
           min-width: 0;
@@ -620,9 +620,28 @@
           overflow: auto !important;
           -webkit-overflow-scrolling: touch;
         }
-        /* PDF placeholder can be narrower on mobile */
+        /* PDF placeholder can be narrower on mobile, centred in block flow */
         #pdf-placeholder {
           width: min(90vw, 420px);
+          margin-left: auto;
+          margin-right: auto;
+        }
+        /* Organiser screen centred in block flow on mobile */
+        #organizer-screen {
+          margin-left: auto;
+          margin-right: auto;
+        }
+        /* Allow the browser to manage touch-panning on the Fabric canvas
+         layers so the pdf-scroll-container can scroll natively on mobile.
+         The .drawing-active overrides below re-enable full Fabric capture
+         only during freehand drawing. */
+        .canvas-container,
+        .upper-canvas {
+          touch-action: auto !important;
+        }
+        .drawing-active.canvas-container,
+        .drawing-active .upper-canvas {
+          touch-action: none !important;
         }
         /* Archive search full-width on mobile */
         .archive-search {
@@ -1276,10 +1295,12 @@
              The pagination bar created by script.js is inserted
              immediately after this wrapper (pdfWrapper.nextSibling).
         ─────────────────────────────────────────────────────────── -->
-            <div id="pdf-wrapper" style="display: none">
-              <canvas id="pdf-render-canvas"></canvas>
-              <canvas id="fabric-canvas-el"></canvas>
-              <div id="page-info"></div>
+            <div id="pdf-scroll-container" class="w-full overflow-auto text-center pb-20" style="-webkit-overflow-scrolling: touch;">
+              <div id="pdf-wrapper" style="display: none">
+                <canvas id="pdf-render-canvas"></canvas>
+                <canvas id="fabric-canvas-el"></canvas>
+                <div id="page-info"></div>
+              </div>
             </div>
             <!-- Stamp hint, text hint, and pagination bar injected here at runtime by script.js -->
           </main>
