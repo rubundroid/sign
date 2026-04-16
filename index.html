@@ -607,18 +607,20 @@
           flex-direction: column;
           overflow: hidden;
         }
-        /* On mobile, switch <main> from flex to block so the PDF canvas
-         can expand naturally and #pdf-scroll-container handles scrolling.
-         flex:1 is preserved via explicit height so it still fills the
-         remaining space below the header. */
+        /* Keep <main> as a flex column so its children can use flex
+         sizing.  display:flex gives #pdf-scroll-container access to
+         flex:1 1 0% + min-height:0, which creates the bounded height
+         required for overflow:auto to fire real vertical scrollbars.
+         overflow:hidden here delegates ALL scrolling to the child
+         #pdf-scroll-container — if <main> were overflow:auto it would
+         absorb the scroll before the child ever got it. */
         #tab-dashboard.active > main {
-          display: block;
+          display: flex !important;
+          flex-direction: column;
           flex: 1 1 0%;
           min-height: 0;
           min-width: 0;
-          max-width: 100vw;
-          overflow: auto !important;
-          -webkit-overflow-scrolling: touch;
+          overflow: hidden !important;
         }
         /* PDF placeholder can be narrower on mobile, centred in block flow */
         #pdf-placeholder {
@@ -630,6 +632,30 @@
         #organizer-screen {
           margin-left: auto;
           margin-right: auto;
+        }
+        /* ── PDF scroll container: the sole scroll viewport on mobile ──
+         KEY FIX A — flex:1 1 0% + min-height:0:
+           With <main> as a flex column (rule above), this element now
+           gets a bounded height (= remaining space below the header).
+           A bounded height is the prerequisite for overflow:auto to
+           produce real vertical scrollbars — without it the element
+           just grows to fit content and never scrolls.
+         KEY FIX B — text-align:left !important:
+           The Tailwind class text-center applies text-align:center.
+           When #pdf-wrapper (display:inline-block, e.g. 800 px wide)
+           is wider than this container (~375 px on mobile), centering
+           offsets it –212 px to the LEFT.  That left overflow is
+           UNREACHABLE — the browser clamps scrollLeft at 0, leaving
+           the canvas permanently clipped with no way to pan back to
+           the left edge.  Resetting to left means ALL horizontal
+           overflow spills to the RIGHT where scrollLeft works fine.
+        ──────────────────────────────────────────────────────────────── */
+        #pdf-scroll-container {
+          flex: 1 1 0%;
+          min-height: 0;
+          overflow: auto !important;
+          -webkit-overflow-scrolling: touch;
+          text-align: left !important;
         }
         /* Allow the browser to manage touch-panning on the Fabric canvas
          layers so the pdf-scroll-container can scroll natively on mobile.
