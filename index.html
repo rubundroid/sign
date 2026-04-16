@@ -569,6 +569,20 @@
        positioning and transforms are not applied there.
     ════════════════════════════════════════════════════════════ */
       @media (max-width: 767px) {
+        /* ── DVH root fix ──────────────────────────────────────────────
+         #app-dashboard uses h-screen (= height:100vh) from its Tailwind
+         class.  On mobile browsers the URL / navigation bar means 100vh
+         is LARGER than the actual visible viewport, breaking the flex
+         height chain so <main>'s overflow-auto never gets a bounded
+         height to scroll within.  Overriding to 100dvh (dynamic viewport
+         height) clamps the shell exactly to what the user can see, which
+         propagates down through every flex:1 child and lets <main> create
+         real scrollbars for wide / tall PDF canvases.
+        ─────────────────────────────────────────────────────────────── */
+        #app-dashboard {
+          height: 100dvh;
+        }
+
         /* Sidebar: fixed overlay, hidden off-screen to the left by default */
         #app-sidebar {
           position: fixed !important;
@@ -592,6 +606,18 @@
         #tab-dashboard.active {
           flex-direction: column;
           overflow: hidden;
+        }
+        /* <main> must fill the remaining height after the header and be
+         the scroll container for wide / tall PDF canvases on mobile.
+         -webkit-overflow-scrolling:touch enables momentum scrolling on
+         older iOS Safari; overflow:auto is already set via Tailwind but
+         we repeat it here to be explicit and ensure it wins on mobile. */
+        #tab-dashboard.active > main {
+          flex: 1 1 0%;
+          min-height: 0;
+          min-width: 0;
+          overflow: auto;
+          -webkit-overflow-scrolling: touch;
         }
         /* PDF placeholder can be narrower on mobile */
         #pdf-placeholder {
