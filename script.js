@@ -724,6 +724,13 @@ document.addEventListener('DOMContentLoaded', () => {
     showOrganizerScreen();
   });
 
+  document.getElementById('btn-clear-organizer')?.addEventListener('click', () => {
+    if (orgPages.length === 0) return;
+    if (!confirm('Clear all pages from the organizer?')) return;
+    orgPages = [];
+    renderThumbnails();
+  });
+
   document.getElementById('btn-organizer-reset').addEventListener('click', () => {
     if (!confirm('Start over? All organizer pages and signatures will be cleared.')) return;
     orgPages = [];
@@ -891,6 +898,10 @@ document.addEventListener('DOMContentLoaded', () => {
             left:               pointer.x - imgObj.getScaledWidth()  / 2,
             top:                pointer.y - imgObj.getScaledHeight() / 2,
             opacity:            1,
+            selectable:         true,
+            evented:            true,
+            hoverCursor:        'move',
+            moveCursor:         'move',
             hasControls:        true,
             hasBorders:         true,
             borderColor:        color,
