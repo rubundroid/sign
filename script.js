@@ -845,7 +845,7 @@ document.addEventListener('DOMContentLoaded', () => {
         fabricCanvas.upperCanvasEl,
         fabricCanvas.lowerCanvasEl,
         fabricCanvas.wrapperEl,
-      ].forEach(el => el && el.style.setProperty('touch-action', 'pan-x pan-y', 'important'));
+      ].forEach(el => el && el.style.removeProperty('touch-action'));
     });
 
     Object.assign(fabricCanvas.wrapperEl.style, {
@@ -1457,7 +1457,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (active) {
         el.style.touchAction = 'none';
       } else {
-        el.style.setProperty('touch-action', 'pan-x pan-y', 'important');
+        el.style.removeProperty('touch-action');
       }
     });
 
