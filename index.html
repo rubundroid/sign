@@ -171,15 +171,17 @@
         top: 0 !important;
         left: 0 !important;
         mix-blend-mode: multiply;
-        /* Mobile scroll fix: allow native pan gestures so the page can scroll
-         while Fabric is in selection/stamp/text mode.
+        /* Mobile scroll fix: `auto` hands all touch gestures back to the browser
+         so the overflow container can native-scroll freely.
+         `pan-x pan-y` was tried first but Fabric's group-selection still hijacked
+         the touch stream; `auto` is the only value that fully passes through.
          The .drawing-active override below re-enables full capture for drawing.
          CSS !important beats Fabric's inline style.touchAction assignments. */
-        touch-action: pan-x pan-y !important;
+        touch-action: auto !important;
       }
-      /* Same pan-x pan-y on the upper (event-capture) canvas layer */
+      /* Same `auto` on the upper (event-capture) canvas layer */
       .upper-canvas {
-        touch-action: pan-x pan-y !important;
+        touch-action: auto !important;
       }
       /* While freehand drawing, the browser must NOT intercept touch gestures —
        Fabric needs every pointer event to render strokes correctly.
@@ -607,67 +609,21 @@
           flex-direction: column;
           overflow: hidden;
         }
-        /* Keep <main> as a flex column so its children can use flex
-         sizing.  display:flex gives #pdf-scroll-container access to
-         flex:1 1 0% + min-height:0, which creates the bounded height
-         required for overflow:auto to fire real vertical scrollbars.
-         overflow:hidden here delegates ALL scrolling to the child
-         #pdf-scroll-container — if <main> were overflow:auto it would
-         absorb the scroll before the child ever got it. */
+        /* <main> must fill the remaining height after the header and be
+         the scroll container for wide / tall PDF canvases on mobile.
+         -webkit-overflow-scrolling:touch enables momentum scrolling on
+         older iOS Safari; overflow:auto is already set via Tailwind but
+         we repeat it here to be explicit and ensure it wins on mobile. */
         #tab-dashboard.active > main {
-          display: flex !important;
-          flex-direction: column;
           flex: 1 1 0%;
           min-height: 0;
           min-width: 0;
-          overflow: hidden !important;
+          overflow: auto;
+          -webkit-overflow-scrolling: touch;
         }
-        /* PDF placeholder can be narrower on mobile, centred in block flow */
+        /* PDF placeholder can be narrower on mobile */
         #pdf-placeholder {
           width: min(90vw, 420px);
-          margin-left: auto;
-          margin-right: auto;
-        }
-        /* Organiser screen centred in block flow on mobile */
-        #organizer-screen {
-          margin-left: auto;
-          margin-right: auto;
-        }
-        /* ── PDF scroll container: the sole scroll viewport on mobile ──
-         KEY FIX A — flex:1 1 0% + min-height:0:
-           With <main> as a flex column (rule above), this element now
-           gets a bounded height (= remaining space below the header).
-           A bounded height is the prerequisite for overflow:auto to
-           produce real vertical scrollbars — without it the element
-           just grows to fit content and never scrolls.
-         KEY FIX B — text-align:left !important:
-           The Tailwind class text-center applies text-align:center.
-           When #pdf-wrapper (display:inline-block, e.g. 800 px wide)
-           is wider than this container (~375 px on mobile), centering
-           offsets it –212 px to the LEFT.  That left overflow is
-           UNREACHABLE — the browser clamps scrollLeft at 0, leaving
-           the canvas permanently clipped with no way to pan back to
-           the left edge.  Resetting to left means ALL horizontal
-           overflow spills to the RIGHT where scrollLeft works fine.
-        ──────────────────────────────────────────────────────────────── */
-        #pdf-scroll-container {
-          flex: 1 1 0%;
-          min-height: 0;
-          overflow: auto !important;
-          -webkit-overflow-scrolling: touch;
-          text-align: left !important;
-        }
-        /* Allow the browser to manage touch-panning on the Fabric canvas
-         layers so the pdf-scroll-container can scroll natively on mobile.
-         The .drawing-active overrides below re-enable full Fabric capture
-         only during freehand drawing. */
-        .canvas-container,
-        .upper-canvas {
-          touch-action: auto !important;
-        }
-        .drawing-active.canvas-container,
-        .drawing-active .upper-canvas {
-          touch-action: none !important;
         }
         /* Archive search full-width on mobile */
         .archive-search {
@@ -841,7 +797,7 @@
        Fills the space below the header.  The active tab panel
        expands to fill this flex container.
   ══════════════════════════════════════════════════════════════ -->
-      <div class="flex flex-1 overflow-hidden relative w-full min-w-0 min-h-0">
+      <div class="flex flex-1 overflow-hidden relative">
         <!-- Mobile sidebar backdrop — tapping closes the sidebar on small screens -->
         <div
           id="mobile-sidebar-backdrop"
@@ -851,7 +807,7 @@
         <!-- ══════════════════════════════════════════════════════
          TAB 1 — DASHBOARD
     ══════════════════════════════════════════════════════════ -->
-        <div id="tab-dashboard" class="tab-panel active w-full min-w-0 min-h-0">
+        <div id="tab-dashboard" class="tab-panel active w-full">
           <!-- ── SIDEBAR ─────────────────────────────────────────── -->
           <!-- id="app-sidebar" is used by script.js §MOBILE toggle.
            On md+ it sits in normal document flow (w-72, shrink-0).
@@ -1321,12 +1277,10 @@
              The pagination bar created by script.js is inserted
              immediately after this wrapper (pdfWrapper.nextSibling).
         ─────────────────────────────────────────────────────────── -->
-            <div id="pdf-scroll-container" class="w-full overflow-auto text-center pb-20" style="-webkit-overflow-scrolling: touch;">
-              <div id="pdf-wrapper" style="display: none">
-                <canvas id="pdf-render-canvas"></canvas>
-                <canvas id="fabric-canvas-el"></canvas>
-                <div id="page-info"></div>
-              </div>
+            <div id="pdf-wrapper" style="display: none">
+              <canvas id="pdf-render-canvas"></canvas>
+              <canvas id="fabric-canvas-el"></canvas>
+              <div id="page-info"></div>
             </div>
             <!-- Stamp hint, text hint, and pagination bar injected here at runtime by script.js -->
           </main>
@@ -1336,7 +1290,7 @@
         <!-- ══════════════════════════════════════════════════════
          TAB 2 — ARCHIVE  (Live history from localStorage)
     ══════════════════════════════════════════════════════════ -->
-        <div id="tab-archive" class="tab-panel w-full bg-surface min-w-0 min-h-0">
+        <div id="tab-archive" class="tab-panel w-full bg-surface">
           <!-- Archive sticky header (responsive) -->
           <div
             class="sticky top-0 z-20 glass-toolbar px-4 sm:px-6 md:px-10 py-3 md:py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 shadow-[0_1px_0_rgba(193,198,214,0.3)]"
