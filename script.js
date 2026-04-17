@@ -70,9 +70,9 @@ document.addEventListener('DOMContentLoaded', () => {
      (max-width: 767px) block converts to translateX(0).
      On md+ the sidebar is in normal flow; .sidebar-open has no effect.
   ════════════════════════════════════════════════════════════════════ */
-  const _sidebar   = document.getElementById('app-sidebar');
-  const _menuBtn   = document.getElementById('btn-mobile-menu');
-  const _backdrop  = document.getElementById('mobile-sidebar-backdrop');
+  const _sidebar = document.getElementById('app-sidebar');
+  const _menuBtn = document.getElementById('btn-mobile-menu');
+  const _backdrop = document.getElementById('mobile-sidebar-backdrop');
 
   function _openSidebar() {
     _sidebar?.classList.add('sidebar-open');
@@ -122,12 +122,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function _archiveFormatSize(bytes) {
     if (!bytes || bytes < 1024) return bytes + ' B';
-    if (bytes < 1024 * 1024)   return (bytes / 1024).toFixed(1) + ' KB';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
     return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
   }
 
   function _buildArchiveRow(record) {
-    const row     = document.createElement('div');
+    const row = document.createElement('div');
     row.className = 'doc-row gap-3 sm:gap-5';
     row.dataset.filename = (record.name || '').toLowerCase();
 
@@ -183,7 +183,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let history = [];
     try {
       history = JSON.parse(localStorage.getItem('iss_archive_history') || '[]');
-    } catch (_) {}
+    } catch (_) { }
 
     if (history.length === 0) {
       const empty = document.createElement('div');
@@ -210,27 +210,27 @@ document.addEventListener('DOMContentLoaded', () => {
   /* ════════════════════════════════════════════════════════════════════
      §1  PIN SCREEN
   ════════════════════════════════════════════════════════════════════ */
-  const pinInput     = document.getElementById('pin-input');
-  const verifyBtn    = document.getElementById('verify-btn');
-  const pinScreen    = document.getElementById('pin-screen');
+  const pinInput = document.getElementById('pin-input');
+  const verifyBtn = document.getElementById('verify-btn');
+  const pinScreen = document.getElementById('pin-screen');
   const appDashboard = document.getElementById('app-dashboard');
   const dotContainer = document.getElementById('dot-container');
-  const pinTitle     = document.getElementById('pin-title');
-  const pinSubtitle  = document.getElementById('pin-subtitle');
-  const btnText      = document.getElementById('btn-text');
+  const pinTitle = document.getElementById('pin-title');
+  const pinSubtitle = document.getElementById('pin-subtitle');
+  const btnText = document.getElementById('btn-text');
 
-  let savedPin     = localStorage.getItem('ink_signer_pin');
+  let savedPin = localStorage.getItem('ink_signer_pin');
   let isSettingPin = !savedPin;
 
   if (isSettingPin) {
-    if (pinTitle)    pinTitle.innerText    = 'Set New PIN';
+    if (pinTitle) pinTitle.innerText = 'Set New PIN';
     if (pinSubtitle) pinSubtitle.innerText = 'സുരക്ഷയ്ക്കായി ഒരു പുതിയ PIN സൃഷ്ടിക്കുക';
-    if (btnText)     btnText.innerText     = 'Save PIN';
+    if (btnText) btnText.innerText = 'Save PIN';
   }
 
   pinInput.addEventListener('input', () => {
     pinInput.value = pinInput.value.replace(/[^0-9]/g, '');
-    const len  = pinInput.value.length;
+    const len = pinInput.value.length;
     const dots = dotContainer.children;
     for (let i = 0; i < 4; i++) {
       dots[i].className = i < len
@@ -270,7 +270,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (thumbGrid) thumbGrid.innerHTML = '';
     if (orgPageCount) orgPageCount.textContent = '0 pages';
 
-    pinScreen.style.opacity    = '0';
+    pinScreen.style.opacity = '0';
     pinScreen.style.transition = 'opacity 0.5s';
     setTimeout(() => (pinScreen.style.display = 'none'), 500);
     appDashboard.classList.remove('blur-md', 'pointer-events-none', 'grayscale-[0.2]', 'opacity-40');
@@ -296,43 +296,43 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   document.getElementById('btn-forgot-pin')?.addEventListener('click', doResetApp);
-  document.getElementById('btn-reset-app')?.addEventListener('click',  doResetApp);
+  document.getElementById('btn-reset-app')?.addEventListener('click', doResetApp);
 
 
   /* ════════════════════════════════════════════════════════════════════
      §2  STATE & DOM REFS
   ════════════════════════════════════════════════════════════════════ */
-  const uploadArea        = document.getElementById('upload-area');
-  const fileInput         = document.getElementById('pdf-file-input');
-  const pdfCanvas         = document.getElementById('pdf-render-canvas');
-  const pdfPlaceholder    = document.getElementById('pdf-placeholder');
-  const pdfWrapper        = document.getElementById('pdf-wrapper');
-  const pageInfo          = document.getElementById('page-info');
-  const deleteBtnEl       = document.getElementById('btn-delete-sel');
-  const organizerScreen   = document.getElementById('organizer-screen');
+  const uploadArea = document.getElementById('upload-area');
+  const fileInput = document.getElementById('pdf-file-input');
+  const pdfCanvas = document.getElementById('pdf-render-canvas');
+  const pdfPlaceholder = document.getElementById('pdf-placeholder');
+  const pdfWrapper = document.getElementById('pdf-wrapper');
+  const pageInfo = document.getElementById('page-info');
+  const deleteBtnEl = document.getElementById('btn-delete-sel');
+  const organizerScreen = document.getElementById('organizer-screen');
   const organizerControls = document.getElementById('organizer-controls');
-  const stampControls     = document.getElementById('stamp-controls');
-  const thumbGrid         = document.getElementById('thumb-grid');
-  const orgSpinner        = document.getElementById('org-spinner');
-  const orgEmpty          = document.getElementById('org-empty');
-  const orgPageCount      = document.getElementById('org-page-count');
+  const stampControls = document.getElementById('stamp-controls');
+  const thumbGrid = document.getElementById('thumb-grid');
+  const orgSpinner = document.getElementById('org-spinner');
+  const orgEmpty = document.getElementById('org-empty');
+  const orgPageCount = document.getElementById('org-page-count');
 
   const RENDER_SCALE = 1.8;
-  const THUMB_SCALE  = 0.25;
+  const THUMB_SCALE = 0.25;
 
-  let pdfDoc       = null;
-  let pdfBytes     = null;
-  let currentPage  = 1;
-  let totalPages   = 1;
+  let pdfDoc = null;
+  let pdfBytes = null;
+  let currentPage = 1;
+  let totalPages = 1;
   let fabricCanvas = null;
 
-  const pageObjects    = new Map();
+  const pageObjects = new Map();
   const pageDimensions = new Map();
 
   // Organizer state
   // Each entry: { srcBytes, srcPageIndex, label, thumbDataUrl, rotation }
   // rotation: 0 | 90 | 180 | 270  (degrees, clockwise)
-  let orgPages   = [];
+  let orgPages = [];
   let dragSrcIdx = null;
 
 
@@ -340,10 +340,10 @@ document.addEventListener('DOMContentLoaded', () => {
      §2·5  GLOBAL LOADING OVERLAY
   ════════════════════════════════════════════════════════════════════ */
   const loadingOverlay = document.getElementById('loading-overlay');
-  const loadingText    = document.getElementById('loading-text');
+  const loadingText = document.getElementById('loading-text');
 
   function showLoader(msg = 'Please wait…') {
-    if (loadingText)    loadingText.textContent = msg;
+    if (loadingText) loadingText.textContent = msg;
     if (loadingOverlay) loadingOverlay.classList.add('active');
   }
   function hideLoader() {
@@ -355,7 +355,7 @@ document.addEventListener('DOMContentLoaded', () => {
      §3  PAGINATION BAR  (injected below #pdf-wrapper by JS)
   ════════════════════════════════════════════════════════════════════ */
   const paginationBar = document.createElement('div');
-  paginationBar.id    = 'pagination-bar';
+  paginationBar.id = 'pagination-bar';
   Object.assign(paginationBar.style, {
     display: 'none', alignItems: 'center', justifyContent: 'center',
     gap: '14px', fontFamily: 'Inter, sans-serif', marginTop: '12px',
@@ -377,15 +377,15 @@ document.addEventListener('DOMContentLoaded', () => {
   const pageLbl = document.getElementById('page-label');
 
   function updatePaginationUI() {
-    pageLbl.textContent  = `Page ${currentPage} of ${totalPages}`;
+    pageLbl.textContent = `Page ${currentPage} of ${totalPages}`;
     pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
-    btnPrev.style.opacity       = currentPage <= 1          ? '0.32' : '1';
-    btnPrev.style.pointerEvents = currentPage <= 1          ? 'none'  : 'auto';
-    btnNext.style.opacity       = currentPage >= totalPages ? '0.32' : '1';
-    btnNext.style.pointerEvents = currentPage >= totalPages ? 'none'  : 'auto';
+    btnPrev.style.opacity = currentPage <= 1 ? '0.32' : '1';
+    btnPrev.style.pointerEvents = currentPage <= 1 ? 'none' : 'auto';
+    btnNext.style.opacity = currentPage >= totalPages ? '0.32' : '1';
+    btnNext.style.pointerEvents = currentPage >= totalPages ? 'none' : 'auto';
   }
 
-  btnPrev.addEventListener('click', () => { if (currentPage > 1)          navigateTo(currentPage - 1); });
+  btnPrev.addEventListener('click', () => { if (currentPage > 1) navigateTo(currentPage - 1); });
   btnNext.addEventListener('click', () => { if (currentPage < totalPages) navigateTo(currentPage + 1); });
 
   async function navigateTo(newPage) {
@@ -453,16 +453,16 @@ document.addEventListener('DOMContentLoaded', () => {
     orgSpinner.classList.remove('hidden');
 
     for (const file of files) {
-      const bytes     = await file.arrayBuffer();
+      const bytes = await file.arrayBuffer();
       const pdfDocTmp = await pdfjsLib.getDocument({ data: bytes.slice(0) }).promise;
 
       for (let i = 0; i < pdfDocTmp.numPages; i++) {
-        const page     = await pdfDocTmp.getPage(i + 1);
+        const page = await pdfDocTmp.getPage(i + 1);
         const viewport = page.getViewport({ scale: THUMB_SCALE });
 
-        const tc     = document.createElement('canvas');
-        tc.width     = viewport.width;
-        tc.height    = viewport.height;
+        const tc = document.createElement('canvas');
+        tc.width = viewport.width;
+        tc.height = viewport.height;
         await page.render({ canvasContext: tc.getContext('2d'), viewport }).promise;
 
         // Convert to a lightweight JPEG data URL immediately so the heavy
@@ -471,11 +471,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const dataUrl = tc.toDataURL('image/jpeg', 0.6);
 
         orgPages.push({
-          srcBytes:     bytes,
+          srcBytes: bytes,
           srcPageIndex: i,
-          label:        `${file.name.replace(/\.pdf$/i, '')}  p.${i + 1}`,
+          label: `${file.name.replace(/\.pdf$/i, '')}  p.${i + 1}`,
           thumbDataUrl: dataUrl,
-          rotation:     0,    // ── FIX #3: rotation state (0|90|180|270)
+          rotation: 0,    // ── FIX #3: rotation state (0|90|180|270)
         });
       }
     }
@@ -505,8 +505,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     orgPages.forEach((pg, idx) => {
       const card = document.createElement('div');
-      card.className   = 'thumb-card';
-      card.draggable   = true;
+      card.className = 'thumb-card';
+      card.draggable = true;
       card.dataset.idx = idx;
 
       // Use a lightweight <img> with CSS rotation instead of creating
@@ -525,14 +525,14 @@ document.addEventListener('DOMContentLoaded', () => {
       footer.className = 'thumb-footer';
 
       const labelEl = document.createElement('span');
-      labelEl.textContent   = pg.label;
+      labelEl.textContent = pg.label;
       labelEl.style.cssText = 'flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:52px;font-size:10px;';
 
       // ── MOBILE REORDER: Move Left (←) button ──────────────────────
       const moveLeftBtn = document.createElement('button');
       moveLeftBtn.className = 'thumb-del';
-      moveLeftBtn.title     = 'Move Left';
-      const isFirst         = idx === 0;
+      moveLeftBtn.title = 'Move Left';
+      const isFirst = idx === 0;
       moveLeftBtn.style.cssText = `color:#005bbf;margin-right:1px;${isFirst ? 'opacity:.22;pointer-events:none;' : ''}`;
       moveLeftBtn.innerHTML = '<span class="material-symbols-outlined" style="font-size:14px">chevron_left</span>';
       moveLeftBtn.addEventListener('click', (e) => {
@@ -545,8 +545,8 @@ document.addEventListener('DOMContentLoaded', () => {
       // ── MOBILE REORDER: Move Right (→) button ─────────────────────
       const moveRightBtn = document.createElement('button');
       moveRightBtn.className = 'thumb-del';
-      moveRightBtn.title     = 'Move Right';
-      const isLast           = idx === orgPages.length - 1;
+      moveRightBtn.title = 'Move Right';
+      const isLast = idx === orgPages.length - 1;
       moveRightBtn.style.cssText = `color:#005bbf;margin-right:2px;${isLast ? 'opacity:.22;pointer-events:none;' : ''}`;
       moveRightBtn.innerHTML = '<span class="material-symbols-outlined" style="font-size:14px">chevron_right</span>';
       moveRightBtn.addEventListener('click', (e) => {
@@ -559,7 +559,7 @@ document.addEventListener('DOMContentLoaded', () => {
       // ── FIX #3: Rotate button ──────────────────────────────────────
       const rotBtn = document.createElement('button');
       rotBtn.className = 'thumb-del';   // reuse same base style (overridden below)
-      rotBtn.title     = 'Rotate 90°';
+      rotBtn.title = 'Rotate 90°';
       rotBtn.style.cssText = 'color:#005bbf;margin-right:2px;';
       rotBtn.innerHTML = '<span class="material-symbols-outlined" style="font-size:14px">rotate_right</span>';
       rotBtn.addEventListener('click', (e) => {
@@ -570,7 +570,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const delBtn = document.createElement('button');
       delBtn.className = 'thumb-del';
-      delBtn.title     = 'Remove this page';
+      delBtn.title = 'Remove this page';
       delBtn.innerHTML = '<span class="material-symbols-outlined" style="font-size:14px">close</span>';
       delBtn.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -650,14 +650,14 @@ document.addEventListener('DOMContentLoaded', () => {
     await new Promise(r => setTimeout(r, 10));
 
     try {
-      const mergedDoc   = await PDFLib.PDFDocument.create();
+      const mergedDoc = await PDFLib.PDFDocument.create();
       const srcDocCache = new Map();
 
       for (const pg of orgPages) {
         let srcDoc = srcDocCache.get(pg.srcBytes);
         if (!srcDoc) {
           srcDoc = await PDFLib.PDFDocument.load(pg.srcBytes, { ignoreEncryption: true });
-          try { srcDoc.getForm().flatten(); } catch (_) {}
+          try { srcDoc.getForm().flatten(); } catch (_) { }
           srcDocCache.set(pg.srcBytes, srcDoc);
         }
         const [copiedPage] = await mergedDoc.copyPages(srcDoc, [pg.srcPageIndex]);
@@ -667,7 +667,7 @@ document.addEventListener('DOMContentLoaded', () => {
           // pdf-lib stores rotation as cumulative; setRotation replaces it.
           // We need to combine any pre-existing page rotation with our added rotation.
           const existingAngle = copiedPage.getRotation().angle || 0;
-          const totalAngle    = (existingAngle + pg.rotation) % 360;
+          const totalAngle = (existingAngle + pg.rotation) % 360;
           copiedPage.setRotation(PDFLib.degrees(totalAngle));
         }
 
@@ -688,22 +688,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
   /* showOrganizerScreen / showSigningScreen — screen switcher */
   function showOrganizerScreen() {
-    pdfPlaceholder.style.display    = 'none';
-    organizerScreen.style.display   = 'block';
-    pdfWrapper.style.display        = 'none';
-    paginationBar.style.display     = 'none';
-    pageInfo.style.display          = 'none';
+    pdfPlaceholder.style.display = 'none';
+    organizerScreen.style.display = 'block';
+    pdfWrapper.style.display = 'none';
+    paginationBar.style.display = 'none';
+    pageInfo.style.display = 'none';
     organizerControls.style.display = 'flex';
-    stampControls.style.display     = 'none';
+    stampControls.style.display = 'none';
   }
 
   function showSigningScreen() {
-    organizerScreen.style.display   = 'none';
+    organizerScreen.style.display = 'none';
     organizerControls.style.display = 'none';
-    stampControls.style.display     = 'flex';
-    pdfWrapper.style.display        = 'inline-block';
-    paginationBar.style.display     = 'flex';
-    pageInfo.style.display          = 'block';
+    stampControls.style.display = 'flex';
+    pdfWrapper.style.display = 'inline-block';
+    paginationBar.style.display = 'flex';
+    pageInfo.style.display = 'block';
   }
 
   document.getElementById('btn-proceed-sign').addEventListener('click', mergeAndLoad);
@@ -725,15 +725,15 @@ document.addEventListener('DOMContentLoaded', () => {
     thumbGrid.innerHTML = '';
     pageObjects.clear();
     pageDimensions.clear();
-    pdfDoc   = null;
+    pdfDoc = null;
     pdfBytes = null;
-    organizerScreen.style.display   = 'none';
+    organizerScreen.style.display = 'none';
     organizerControls.style.display = 'none';
-    stampControls.style.display     = 'none';
-    pdfWrapper.style.display        = 'none';
-    paginationBar.style.display     = 'none';
-    pageInfo.style.display          = 'none';
-    pdfPlaceholder.style.display    = 'flex';
+    stampControls.style.display = 'none';
+    pdfWrapper.style.display = 'none';
+    paginationBar.style.display = 'none';
+    pageInfo.style.display = 'none';
+    pdfPlaceholder.style.display = 'flex';
     if (fabricCanvas) { fabricCanvas.clear(); fabricCanvas.requestRenderAll(); }
   });
 
@@ -748,8 +748,8 @@ document.addEventListener('DOMContentLoaded', () => {
     await new Promise(r => setTimeout(r, 10));
 
     try {
-      pdfDoc      = await pdfjsLib.getDocument({ data: buffer.slice(0) }).promise;
-      totalPages  = pdfDoc.numPages;
+      pdfDoc = await pdfjsLib.getDocument({ data: buffer.slice(0) }).promise;
+      totalPages = pdfDoc.numPages;
       currentPage = 1;
       pageObjects.clear();
       pageDimensions.clear();
@@ -768,10 +768,10 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   async function renderPage(pageNum) {
-    const page     = await pdfDoc.getPage(pageNum);
+    const page = await pdfDoc.getPage(pageNum);
     const viewport = page.getViewport({ scale: RENDER_SCALE });
 
-    pdfCanvas.width  = viewport.width;
+    pdfCanvas.width = viewport.width;
     pdfCanvas.height = viewport.height;
 
     pageDimensions.set(pageNum, { canvasW: viewport.width, canvasH: viewport.height });
@@ -786,7 +786,7 @@ document.addEventListener('DOMContentLoaded', () => {
       fabricCanvas.setHeight(viewport.height);
       fabricCanvas.clear();
       Object.assign(fabricCanvas.wrapperEl.style, {
-        width:  viewport.width  + 'px',
+        width: viewport.width + 'px',
         height: viewport.height + 'px',
       });
       fabricCanvas.requestRenderAll();
@@ -814,18 +814,18 @@ document.addEventListener('DOMContentLoaded', () => {
   function initFabricCanvas(width, height) {
     if (fabricCanvas) return;   // guard: created once only
 
-    const el  = document.getElementById('fabric-canvas-el');
-    el.width  = width;
+    const el = document.getElementById('fabric-canvas-el');
+    el.width = width;
     el.height = height;
 
     fabricCanvas = new fabric.Canvas('fabric-canvas-el', {
       width,
       height,
-      selection:              window.innerWidth > 767,
+      selection: window.innerWidth > 767,
       preserveObjectStacking: true,
-      renderOnAddRemove:      true,
-      enableRetinaScaling:    false,
-      allowTouchScrolling:    true,   // Fabric: don't capture scroll-intent touches
+      renderOnAddRemove: true,
+      enableRetinaScaling: false,
+      allowTouchScrolling: true,   // Fabric: don't capture scroll-intent touches
     });
 
     // ── MOBILE SCROLL FIX: allow touch events to propagate for page scrolling
@@ -845,7 +845,7 @@ document.addEventListener('DOMContentLoaded', () => {
         fabricCanvas.upperCanvasEl,
         fabricCanvas.lowerCanvasEl,
         fabricCanvas.wrapperEl,
-      ].forEach(el => el && el.style.removeProperty('touch-action'));
+      ].forEach(el => el && el.style.setProperty('touch-action', 'pan-x pan-y', 'important'));
     });
 
     Object.assign(fabricCanvas.wrapperEl.style, {
@@ -864,7 +864,7 @@ document.addEventListener('DOMContentLoaded', () => {
       deleteBtnEl.classList.remove('hidden');
       _syncColorToolbarToSelection();
     });
-    fabricCanvas.on('selection:cleared',  () => {
+    fabricCanvas.on('selection:cleared', () => {
       deleteBtnEl.classList.add('hidden');
       // Hide colour toolbar unless draw mode is still active
       if (!isDrawingMode) drawToolbar.style.display = 'none';
@@ -876,8 +876,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (stampingMode && ghostStamp) {
         ghostStamp.set({
-          left: p.x - ghostStamp.getScaledWidth()  / 2,
-          top:  p.y - ghostStamp.getScaledHeight() / 2,
+          left: p.x - ghostStamp.getScaledWidth() / 2,
+          top: p.y - ghostStamp.getScaledHeight() / 2,
         });
         ghostStamp.setCoords();
         fabricCanvas.requestRenderAll();
@@ -897,7 +897,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (stampingMode && pendingStampDataUrl) {
         const pointer = opt.pointer;
         const dataUrl = pendingStampDataUrl;
-        const color   = pendingStampColor;
+        const color = pendingStampColor;
 
         exitStampingMode();
 
@@ -906,21 +906,21 @@ document.addEventListener('DOMContentLoaded', () => {
           if (imgObj.width > MAX_W) imgObj.scaleToWidth(MAX_W);
 
           imgObj.set({
-            left:               pointer.x - imgObj.getScaledWidth()  / 2,
-            top:                pointer.y - imgObj.getScaledHeight() / 2,
-            opacity:            1,
-            selectable:         true,
-            evented:            true,
-            hoverCursor:        'move',
-            moveCursor:         'move',
-            hasControls:        true,
-            hasBorders:         true,
-            borderColor:        color,
-            cornerColor:        color,
-            cornerSize:         10,
+            left: pointer.x - imgObj.getScaledWidth() / 2,
+            top: pointer.y - imgObj.getScaledHeight() / 2,
+            opacity: 1,
+            selectable: true,
+            evented: true,
+            hoverCursor: 'move',
+            moveCursor: 'move',
+            hasControls: true,
+            hasBorders: true,
+            borderColor: color,
+            cornerColor: color,
+            cornerSize: 10,
             transparentCorners: false,
-            cornerStyle:        'circle',
-            borderDashArray:    [4, 3],
+            cornerStyle: 'circle',
+            borderDashArray: [4, 3],
           });
 
           fabricCanvas.add(imgObj);
@@ -933,29 +933,29 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // Text placing mode: place IText at exact click point and enter editing
       if (textPlacingMode) {
-        const pointer  = opt.pointer;
+        const pointer = opt.pointer;
         const fontSize = Math.max(16, Math.round(fabricCanvas.width * 0.025));
 
         exitTextPlacingMode();
 
         const textObj = new fabric.IText('Type here', {
-          left:               pointer.x,
-          top:                pointer.y,
-          originX:            'left',
-          originY:            'top',
-          fontFamily:         'Inter, Arial, sans-serif',
+          left: pointer.x,
+          top: pointer.y,
+          originX: 'left',
+          originY: 'top',
+          fontFamily: 'Inter, Arial, sans-serif',
           fontSize,
-          fill:               currentInkColor,
-          fontWeight:         '600',
-          hasControls:        true,
-          hasBorders:         true,
-          borderColor:        currentInkColor,
-          cornerColor:        currentInkColor,
-          cornerSize:         10,
+          fill: currentInkColor,
+          fontWeight: '600',
+          hasControls: true,
+          hasBorders: true,
+          borderColor: currentInkColor,
+          cornerColor: currentInkColor,
+          cornerSize: 10,
           transparentCorners: false,
-          cornerStyle:        'circle',
-          borderDashArray:    [4, 3],
-          editable:           true,
+          cornerStyle: 'circle',
+          borderDashArray: [4, 3],
+          editable: true,
         });
 
         fabricCanvas.add(textObj);
@@ -971,16 +971,16 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
 
-    fabricCanvas.freeDrawingBrush          = new fabric.PencilBrush(fabricCanvas);
-    fabricCanvas.freeDrawingBrush.color    = currentInkColor;
-    fabricCanvas.freeDrawingBrush.width    = currentBrushSize;
+    fabricCanvas.freeDrawingBrush = new fabric.PencilBrush(fabricCanvas);
+    fabricCanvas.freeDrawingBrush.color = currentInkColor;
+    fabricCanvas.freeDrawingBrush.width = currentBrushSize;
     fabricCanvas.freeDrawingBrush.decimate = 0;
   }
 
   /* ── Show/hide colour toolbar based on what is selected ──────────── */
   function _syncColorToolbarToSelection() {
     if (!fabricCanvas) return;
-    const obj    = fabricCanvas.getActiveObject();
+    const obj = fabricCanvas.getActiveObject();
     const isText = obj && (obj.type === 'i-text' || obj.type === 'textbox');
     if (isText && !isDrawingMode) {
       // Expose the colour swatches so the user can pick a text colour
@@ -991,13 +991,13 @@ document.addEventListener('DOMContentLoaded', () => {
         b.classList.toggle('active', b.dataset.color === fill);
       });
       // Sync the size slider to reflect the text object's current font size
-      const fontSize  = obj.get('fontSize') || 48;
+      const fontSize = obj.get('fontSize') || 48;
       const sliderVal = Math.round(fontSize / 3);
-      const clamped   = Math.max(
+      const clamped = Math.max(
         parseInt(brushSizeInput.min, 10) || 1,
         Math.min(parseInt(brushSizeInput.max, 10) || 20, sliderVal)
       );
-      brushSizeInput.value     = clamped;
+      brushSizeInput.value = clamped;
       brushSizeLbl.textContent = clamped;
     } else if (!isText && !isDrawingMode) {
       drawToolbar.style.display = 'none';
@@ -1022,27 +1022,27 @@ document.addEventListener('DOMContentLoaded', () => {
      §6  IMAGE-BASED STAMPS  +  IMAGE PROCESSING & STORAGE PIPELINE
   ════════════════════════════════════════════════════════════════════ */
   const BG_THRESHOLD = 240;
-  const TARGET_KB    = 15;
-  const MIN_SCALE    = 0.40;
-  const SCALE_STEP   = 0.10;
+  const TARGET_KB = 15;
+  const MIN_SCALE = 0.40;
+  const SCALE_STEP = 0.10;
   const MAX_STAMP_PX = 200;
   const JPEG_QUALITY = 0.75;
 
   const STAMP_DEFS = [
-    { btnId: 'btn-ink-sig',     label: 'Ink Signature',    color: '#005bbf', storageKey: 'saved_ink'        },
-    { btnId: 'btn-desig-seal',  label: 'Designation Seal', color: '#1e7a3c', storageKey: 'saved_desig_seal' },
-    { btnId: 'btn-office-seal', label: 'Office Seal',      color: '#b35200', storageKey: 'saved_office_seal'},
+    { btnId: 'btn-ink-sig', label: 'Ink Signature', color: '#005bbf', storageKey: 'saved_ink' },
+    { btnId: 'btn-desig-seal', label: 'Designation Seal', color: '#1e7a3c', storageKey: 'saved_desig_seal' },
+    { btnId: 'btn-office-seal', label: 'Office Seal', color: '#b35200', storageKey: 'saved_office_seal' },
   ];
 
   /* ── Pipeline step ①: background removal ─────────────────────────── */
   function removeBackground(imgEl) {
-    const c   = document.createElement('canvas');
-    c.width   = imgEl.naturalWidth  || imgEl.width;
-    c.height  = imgEl.naturalHeight || imgEl.height;
+    const c = document.createElement('canvas');
+    c.width = imgEl.naturalWidth || imgEl.width;
+    c.height = imgEl.naturalHeight || imgEl.height;
     const ctx = c.getContext('2d');
     ctx.drawImage(imgEl, 0, 0);
     const imageData = ctx.getImageData(0, 0, c.width, c.height);
-    const data      = imageData.data;
+    const data = imageData.data;
     for (let i = 0; i < data.length; i += 4) {
       const lum = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
       if (lum > BG_THRESHOLD) data[i + 3] = 0;
@@ -1053,7 +1053,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   /* ── Pipeline step ②: auto-crop to bounding box ─────────────────── */
   function autoCrop(srcCanvas) {
-    const ctx  = srcCanvas.getContext('2d');
+    const ctx = srcCanvas.getContext('2d');
     const { width, height } = srcCanvas;
     const data = ctx.getImageData(0, 0, width, height).data;
     let minX = width, maxX = -1, minY = height, maxY = -1;
@@ -1066,12 +1066,12 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
     if (maxX < 0 || maxY < 0) return srcCanvas;
-    const PAD  = 2;
+    const PAD = 2;
     minX = Math.max(0, minX - PAD); minY = Math.max(0, minY - PAD);
     maxX = Math.min(width - 1, maxX + PAD); maxY = Math.min(height - 1, maxY + PAD);
     const cropW = maxX - minX + 1, cropH = maxY - minY + 1;
-    const dest  = document.createElement('canvas');
-    dest.width  = cropW; dest.height = cropH;
+    const dest = document.createElement('canvas');
+    dest.width = cropW; dest.height = cropH;
     dest.getContext('2d').drawImage(srcCanvas, minX, minY, cropW, cropH, 0, 0, cropW, cropH);
     return dest;
   }
@@ -1081,11 +1081,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const longest = Math.max(srcCanvas.width, srcCanvas.height);
     if (longest <= MAX_STAMP_PX) return srcCanvas;
     const ratio = MAX_STAMP_PX / longest;
-    const destW = Math.max(1, Math.round(srcCanvas.width  * ratio));
+    const destW = Math.max(1, Math.round(srcCanvas.width * ratio));
     const destH = Math.max(1, Math.round(srcCanvas.height * ratio));
-    const dest  = document.createElement('canvas');
-    dest.width  = destW; dest.height = destH;
-    const ctx   = dest.getContext('2d');
+    const dest = document.createElement('canvas');
+    dest.width = destW; dest.height = destH;
+    const ctx = dest.getContext('2d');
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = 'high';
     ctx.drawImage(srcCanvas, 0, 0, destW, destH);
@@ -1095,13 +1095,13 @@ document.addEventListener('DOMContentLoaded', () => {
   /* ── Pipeline step ③b: compress to JPEG, safety loop ────────────── */
   function compress(scaledCanvas) {
     const origW = scaledCanvas.width, origH = scaledCanvas.height;
-    const flat  = document.createElement('canvas');
-    flat.width  = origW; flat.height = origH;
-    const fc    = flat.getContext('2d');
+    const flat = document.createElement('canvas');
+    flat.width = origW; flat.height = origH;
+    const fc = flat.getContext('2d');
     fc.fillStyle = '#ffffff'; fc.fillRect(0, 0, origW, origH);
     fc.drawImage(scaledCanvas, 0, 0);
 
-    let scale   = 1.0;
+    let scale = 1.0;
     let dataUrl = flat.toDataURL('image/jpeg', JPEG_QUALITY);
 
     while (dataUrl.length > TARGET_KB * 1024 * 1.37 && scale > MIN_SCALE) {
@@ -1110,7 +1110,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const h = Math.max(1, Math.round(origH * scale));
       const tmp = document.createElement('canvas');
       tmp.width = w; tmp.height = h;
-      const tc  = tmp.getContext('2d');
+      const tc = tmp.getContext('2d');
       tc.fillStyle = '#ffffff'; tc.fillRect(0, 0, w, h);
       tc.imageSmoothingEnabled = true; tc.imageSmoothingQuality = 'high';
       tc.drawImage(flat, 0, 0, w, h);
@@ -1126,10 +1126,10 @@ document.addEventListener('DOMContentLoaded', () => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onerror = () => reject(new Error('FileReader failed'));
-      reader.onload  = (ev) => {
+      reader.onload = (ev) => {
         const img = new Image();
         img.onerror = () => reject(new Error('Image load failed'));
-        img.onload  = () => {
+        img.onload = () => {
           try {
             resolve(compress(downscale(autoCrop(removeBackground(img)))));
           } catch (e) { reject(e); }
@@ -1144,19 +1144,19 @@ document.addEventListener('DOMContentLoaded', () => {
   /* ════════════════════════════════════════════════════════════════════
      STAMPING MODE
   ════════════════════════════════════════════════════════════════════ */
-  let stampingMode        = false;
+  let stampingMode = false;
   let pendingStampDataUrl = null;
-  let pendingStampColor   = null;
-  let ghostStamp          = null;
+  let pendingStampColor = null;
+  let ghostStamp = null;
 
   // ── TEXT PLACING MODE state ────────────────────────────────────────
   let textPlacingMode = false;
-  let ghostText       = null;
+  let ghostText = null;
 
   // Stamp hint banner — injected once above the paginationBar
   const stampHint = (() => {
     const el = document.createElement('div');
-    el.id    = 'stamp-hint';
+    el.id = 'stamp-hint';
     el.style.cssText = `
       display: none; align-items: center; gap: 8px;
       padding: 7px 14px; background: #005bbf; color: #fff;
@@ -1178,7 +1178,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // ── Text hint banner — injected above paginationBar (alongside stampHint) ──
   const textHint = (() => {
     const el = document.createElement('div');
-    el.id    = 'text-hint';
+    el.id = 'text-hint';
     el.style.cssText = `
       display: none; align-items: center; gap: 8px;
       padding: 7px 14px; background: #7c3aed; color: #fff;
@@ -1203,12 +1203,12 @@ document.addEventListener('DOMContentLoaded', () => {
     exitTextPlacingMode();
     fabricCanvas.discardActiveObject();
 
-    stampingMode        = true;
+    stampingMode = true;
     pendingStampDataUrl = dataUrl;
-    pendingStampColor   = color;
+    pendingStampColor = color;
 
     fabricCanvas.defaultCursor = 'crosshair';
-    fabricCanvas.hoverCursor   = 'crosshair';
+    fabricCanvas.hoverCursor = 'crosshair';
 
     stampHint.style.display = 'flex';
 
@@ -1219,13 +1219,13 @@ document.addEventListener('DOMContentLoaded', () => {
       if (imgObj.width > MAX_W) imgObj.scaleToWidth(MAX_W);
 
       imgObj.set({
-        left:        -9999,
-        top:         -9999,
-        opacity:     0.50,
-        selectable:  false,
-        evented:     false,
+        left: -9999,
+        top: -9999,
+        opacity: 0.50,
+        selectable: false,
+        evented: false,
         hasControls: false,
-        hasBorders:  false,
+        hasBorders: false,
       });
 
       ghostStamp = imgObj;
@@ -1235,9 +1235,9 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function exitStampingMode() {
-    stampingMode        = false;
+    stampingMode = false;
     pendingStampDataUrl = null;
-    pendingStampColor   = null;
+    pendingStampColor = null;
 
     if (ghostStamp && fabricCanvas) {
       fabricCanvas.remove(ghostStamp);
@@ -1247,7 +1247,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (fabricCanvas) {
       fabricCanvas.defaultCursor = 'default';
-      fabricCanvas.hoverCursor   = 'move';
+      fabricCanvas.hoverCursor = 'move';
     }
 
     stampHint.style.display = 'none';
@@ -1263,27 +1263,27 @@ document.addEventListener('DOMContentLoaded', () => {
     textPlacingMode = true;
 
     fabricCanvas.defaultCursor = 'crosshair';
-    fabricCanvas.hoverCursor   = 'crosshair';
+    fabricCanvas.hoverCursor = 'crosshair';
 
     textHint.style.display = 'flex';
 
     // Create semi-transparent ghost text that follows the cursor
     const fontSize = Math.max(16, Math.round(fabricCanvas.width * 0.025));
     const gt = new fabric.IText('Type here', {
-      left:        -9999,
-      top:         -9999,
-      originX:     'left',
-      originY:     'top',
-      fontFamily:  'Inter, Arial, sans-serif',
+      left: -9999,
+      top: -9999,
+      originX: 'left',
+      originY: 'top',
+      fontFamily: 'Inter, Arial, sans-serif',
       fontSize,
-      fill:        currentInkColor,
-      fontWeight:  '600',
-      opacity:     0.42,
-      selectable:  false,
-      evented:     false,
+      fill: currentInkColor,
+      fontWeight: '600',
+      opacity: 0.42,
+      selectable: false,
+      evented: false,
       hasControls: false,
-      hasBorders:  false,
-      editable:    false,
+      hasBorders: false,
+      editable: false,
     });
     ghostText = gt;
     fabricCanvas.add(ghostText);
@@ -1301,7 +1301,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (fabricCanvas) {
       fabricCanvas.defaultCursor = 'default';
-      fabricCanvas.hoverCursor   = 'move';
+      fabricCanvas.hoverCursor = 'move';
     }
 
     textHint.style.display = 'none';
@@ -1309,8 +1309,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Escape key exits both stamping and text placing modes
   document.addEventListener('keydown', e => {
-    if (e.key === 'Escape' && stampingMode)      exitStampingMode();
-    if (e.key === 'Escape' && textPlacingMode)   exitTextPlacingMode();
+    if (e.key === 'Escape' && stampingMode) exitStampingMode();
+    if (e.key === 'Escape' && textPlacingMode) exitTextPlacingMode();
   });
 
   function addStampToCanvas(dataUrl, color) {
@@ -1324,7 +1324,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let wrapper = document.getElementById(`saved-ui-${storageKey}`);
     if (!wrapper) {
-      wrapper    = document.createElement('div');
+      wrapper = document.createElement('div');
       wrapper.id = `saved-ui-${storageKey}`;
       sidebarBtn.parentNode.insertBefore(wrapper, sidebarBtn);
     }
@@ -1341,7 +1341,7 @@ document.addEventListener('DOMContentLoaded', () => {
     `;
 
     const thumb = document.createElement('img');
-    thumb.src   = savedUrl;
+    thumb.src = savedUrl;
     thumb.style.cssText = `
       width:44px; height:44px; object-fit:contain; border-radius:6px;
       background:repeating-conic-gradient(#ccc 0% 25%,#fff 0% 50%) 0 0/8px 8px;
@@ -1351,11 +1351,11 @@ document.addEventListener('DOMContentLoaded', () => {
     thumb.addEventListener('click', () => addStampToCanvas(savedUrl, color));
 
     const lbl = document.createElement('span');
-    lbl.textContent   = label;
+    lbl.textContent = label;
     lbl.style.cssText = `flex:1; font-size:11px; font-weight:600; color:${color}; line-height:1.3;`;
 
     const trashBtn = document.createElement('button');
-    trashBtn.title     = `Clear saved ${label}`;
+    trashBtn.title = `Clear saved ${label}`;
     trashBtn.innerHTML = `<span class="material-symbols-outlined"
       style="font-size:18px;vertical-align:middle;">delete</span>`;
     trashBtn.style.cssText = `
@@ -1363,7 +1363,7 @@ document.addEventListener('DOMContentLoaded', () => {
       padding:2px 4px; border-radius:6px; transition:background .15s;
     `;
     trashBtn.addEventListener('mouseover', () => trashBtn.style.background = '#fee2e2');
-    trashBtn.addEventListener('mouseout',  () => trashBtn.style.background = 'none');
+    trashBtn.addEventListener('mouseout', () => trashBtn.style.background = 'none');
     trashBtn.addEventListener('click', () => {
       if (!confirm(`"${label}" ഡിലീറ്റ് ചെയ്യണോ?`)) return;
       localStorage.removeItem(storageKey);
@@ -1381,9 +1381,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const sidebarBtn = document.getElementById(btnId);
     if (!sidebarBtn) return;
 
-    const imgPicker        = document.createElement('input');
-    imgPicker.type         = 'file';
-    imgPicker.accept       = 'image/png,image/jpeg,image/gif,image/webp,image/svg+xml';
+    const imgPicker = document.createElement('input');
+    imgPicker.type = 'file';
+    imgPicker.accept = 'image/png,image/jpeg,image/gif,image/webp,image/svg+xml';
     imgPicker.style.display = 'none';
     document.body.appendChild(imgPicker);
 
@@ -1400,7 +1400,7 @@ document.addEventListener('DOMContentLoaded', () => {
     imgPicker.addEventListener('change', async () => {
       const file = imgPicker.files[0];
       if (!file) return;
-      sidebarBtn.disabled      = true;
+      sidebarBtn.disabled = true;
       sidebarBtn.style.opacity = '0.6';
       const origHTML = sidebarBtn.innerHTML;
       sidebarBtn.innerHTML = `<span style="font-size:12px;">Processing…</span>`;
@@ -1410,13 +1410,13 @@ document.addEventListener('DOMContentLoaded', () => {
         catch (se) { console.warn('localStorage quota exceeded:', se); }
         buildSavedStampUI(btnId, label, color, storageKey);
         if (fabricCanvas) addStampToCanvas(processedDataUrl, color);
-        else              alert(`${label} saved! Proceed to Sign to stamp it.`);
+        else alert(`${label} saved! Proceed to Sign to stamp it.`);
       } catch (err) {
         console.error('Stamp processing error:', err);
         alert(`"${label}" process ചെയ്യാൻ കഴിഞ്ഞില്ല: ${err.message}`);
       } finally {
-        sidebarBtn.innerHTML     = origHTML;
-        sidebarBtn.disabled      = false;
+        sidebarBtn.innerHTML = origHTML;
+        sidebarBtn.disabled = false;
         sidebarBtn.style.opacity = '1';
       }
     });
@@ -1426,15 +1426,15 @@ document.addEventListener('DOMContentLoaded', () => {
   /* ════════════════════════════════════════════════════════════════════
      §7  FREEHAND DRAW TOOL
   ════════════════════════════════════════════════════════════════════ */
-  const toggleDrawBtn  = document.getElementById('btn-toggle-draw');
-  const drawBtnLabel   = document.getElementById('draw-btn-label');
-  const drawToolbar    = document.getElementById('draw-toolbar');
+  const toggleDrawBtn = document.getElementById('btn-toggle-draw');
+  const drawBtnLabel = document.getElementById('draw-btn-label');
+  const drawToolbar = document.getElementById('draw-toolbar');
   const brushSizeInput = document.getElementById('brush-size');
-  const brushSizeLbl   = document.getElementById('brush-size-label');
-  const clearDrawBtn   = document.getElementById('btn-clear-draw');
+  const brushSizeLbl = document.getElementById('brush-size-label');
+  const clearDrawBtn = document.getElementById('btn-clear-draw');
 
-  let isDrawingMode    = false;
-  let currentInkColor  = '#005bbf';
+  let isDrawingMode = false;
+  let currentInkColor = '#005bbf';
   let currentBrushSize = 3;
 
   toggleDrawBtn.addEventListener('click', () => {
@@ -1444,7 +1444,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function setDrawingMode(active) {
     if (!fabricCanvas) return;
-    isDrawingMode              = active;
+    isDrawingMode = active;
     fabricCanvas.isDrawingMode = active;
 
     // Belt-and-suspenders touch-action: CSS .drawing-active handles most cases,
@@ -1457,17 +1457,17 @@ document.addEventListener('DOMContentLoaded', () => {
       if (active) {
         el.style.touchAction = 'none';
       } else {
-        el.style.removeProperty('touch-action');
+        el.style.setProperty('touch-action', 'pan-x pan-y', 'important');
       }
     });
 
     if (active) {
       applyBrushSettings();
-      drawBtnLabel.textContent        = 'Stop Drawing';
-      toggleDrawBtn.style.background  = '#dc2626';
-      toggleDrawBtn.style.color       = '#fff';
+      drawBtnLabel.textContent = 'Stop Drawing';
+      toggleDrawBtn.style.background = '#dc2626';
+      toggleDrawBtn.style.color = '#fff';
       toggleDrawBtn.style.borderColor = '#dc2626';
-      drawToolbar.style.display       = 'flex';
+      drawToolbar.style.display = 'flex';
       fabricCanvas.wrapperEl.classList.add('drawing-active');
       fabricCanvas.off('path:created');
       fabricCanvas.on('path:created', () => {
@@ -1476,20 +1476,20 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     } else {
       fabricCanvas.off('path:created');
-      drawBtnLabel.textContent        = 'Start Drawing';
-      toggleDrawBtn.style.background  = '';
-      toggleDrawBtn.style.color       = '';
+      drawBtnLabel.textContent = 'Start Drawing';
+      toggleDrawBtn.style.background = '';
+      toggleDrawBtn.style.color = '';
       toggleDrawBtn.style.borderColor = '';
-      drawToolbar.style.display       = 'none';
+      drawToolbar.style.display = 'none';
       fabricCanvas.wrapperEl.classList.remove('drawing-active');
     }
   }
 
   function applyBrushSettings() {
     if (!fabricCanvas) return;
-    const b    = fabricCanvas.freeDrawingBrush;
-    b.color    = currentInkColor;
-    b.width    = currentBrushSize;
+    const b = fabricCanvas.freeDrawingBrush;
+    b.color = currentInkColor;
+    b.width = currentBrushSize;
     b.decimate = 0;
   }
 
@@ -1518,7 +1518,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   brushSizeInput.addEventListener('input', () => {
-    const sliderVal  = parseInt(brushSizeInput.value, 10);
+    const sliderVal = parseInt(brushSizeInput.value, 10);
     currentBrushSize = sliderVal;
     brushSizeLbl.textContent = sliderVal;
 
@@ -1625,7 +1625,7 @@ document.addEventListener('DOMContentLoaded', () => {
       );
 
       // ── eOffice form flattening ──────────────────────────────────
-      try { pdfLibDoc.getForm().flatten(); } catch (_) {}
+      try { pdfLibDoc.getForm().flatten(); } catch (_) { }
 
       const pdfPages = pdfLibDoc.getPages();
 
@@ -1637,32 +1637,32 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const snapCanvas = await snapshotFabricPage(json, dims.canvasW, dims.canvasH);
 
-        const pdfPage  = pdfPages[p - 1];
+        const pdfPage = pdfPages[p - 1];
         const mediaBox = pdfPage.getMediaBox();
-        const storedW  = mediaBox.width;
-        const storedH  = mediaBox.height;
+        const storedW = mediaBox.width;
+        const storedH = mediaBox.height;
         const rotation = pdfPage.getRotation().angle;
 
         const alignedCanvas = applyInverseRotation(snapCanvas, rotation);
 
         const jpegDataUrl = alignedCanvas.toDataURL('image/jpeg', 0.82);
-        const jpegBase64  = jpegDataUrl.split(',')[1];
-        const jpegBytes   = Uint8Array.from(atob(jpegBase64), c => c.charCodeAt(0));
+        const jpegBase64 = jpegDataUrl.split(',')[1];
+        const jpegBytes = Uint8Array.from(atob(jpegBase64), c => c.charCodeAt(0));
 
         const embedded = await pdfLibDoc.embedJpg(jpegBytes);
         pdfPage.drawImage(embedded, {
-          x:         0,
-          y:         0,
-          width:     storedW,
-          height:    storedH,
+          x: 0,
+          y: 0,
+          width: storedW,
+          height: storedH,
           blendMode: PDFLib.BlendMode.Multiply,
         });
       }
 
       const finalBytes = await pdfLibDoc.save();
-      const blob     = new Blob([finalBytes], { type: 'application/pdf' });
+      const blob = new Blob([finalBytes], { type: 'application/pdf' });
       const filename = 'signed-document.pdf';
-      const url      = URL.createObjectURL(blob);
+      const url = URL.createObjectURL(blob);
       Object.assign(document.createElement('a'), {
         href: url, download: filename,
       }).click();
@@ -1692,8 +1692,8 @@ document.addEventListener('DOMContentLoaded', () => {
         sc.loadFromJSON(fabricJson, () => {
           sc.renderAll();
 
-          const flat    = document.createElement('canvas');
-          flat.width    = canvasW; flat.height = canvasH;
+          const flat = document.createElement('canvas');
+          flat.width = canvasW; flat.height = canvasH;
           const flatCtx = flat.getContext('2d');
           flatCtx.fillStyle = '#ffffff';
           flatCtx.fillRect(0, 0, canvasW, canvasH);
@@ -1710,21 +1710,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const srcW = srcCanvas.width, srcH = srcCanvas.height;
     const dest = document.createElement('canvas');
-    const ctx  = dest.getContext('2d');
+    const ctx = dest.getContext('2d');
 
     if (rotation === 90 || rotation === 270) {
-      dest.width  = srcH;
+      dest.width = srcH;
       dest.height = srcW;
     } else {
-      dest.width  = srcW;
+      dest.width = srcW;
       dest.height = srcH;
     }
 
     ctx.save();
     switch (rotation) {
-      case 90:  ctx.translate(0, dest.height);           ctx.rotate(-Math.PI / 2); break;
-      case 180: ctx.translate(dest.width, dest.height);  ctx.rotate(Math.PI);      break;
-      case 270: ctx.translate(dest.width, 0);            ctx.rotate(Math.PI / 2);  break;
+      case 90: ctx.translate(0, dest.height); ctx.rotate(-Math.PI / 2); break;
+      case 180: ctx.translate(dest.width, dest.height); ctx.rotate(Math.PI); break;
+      case 270: ctx.translate(dest.width, 0); ctx.rotate(Math.PI / 2); break;
     }
     ctx.drawImage(srcCanvas, 0, 0);
     ctx.restore();
