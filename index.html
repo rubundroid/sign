@@ -1,98 +1,106 @@
 <!doctype html>
 <html class="light" lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Ink Sign Studio</title>
 
-<head>
-  <meta charset="utf-8" />
-  <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-  <title>Ink Sign Studio</title>
-
-  <!-- ═══════════════════════════════════════════════════════════
+    <!-- ═══════════════════════════════════════════════════════════
        Social Media / Open Graph preview tags
        These populate the WhatsApp / Facebook / Telegram / LinkedIn
        link-preview card when the URL is shared.
   ════════════════════════════════════════════════════════════════ -->
-  <meta property="og:type" content="website" />
-  <meta property="og:title" content="Ink Sign Studio — Secure PDF Signer" />
-  <meta property="og:description"
-    content="Upload, organise and digitally stamp PDFs with your Ink Signature, Designation Seal or Office Seal — entirely in the browser. PIN-protected and offline-capable." />
-  <meta property="og:image" content="logo192.png" />
-  <meta property="og:image:width" content="192" />
-  <meta property="og:image:height" content="192" />
-  <meta property="og:site_name" content="Ink Sign Studio" />
-  <!-- Twitter / X card (also used by WhatsApp as a fallback) -->
-  <meta name="twitter:card" content="summary" />
-  <meta name="twitter:title" content="Ink Sign Studio — Secure PDF Signer" />
-  <meta name="twitter:description"
-    content="Browser-based PDF signing with Ink Signature, Designation Seal &amp; Office Seal. No server uploads. PIN-protected." />
-  <meta name="twitter:image" content="logo192.png" />
-  <!-- Standard SEO description -->
-  <meta name="description"
-    content="Ink Sign Studio — upload, merge and stamp PDFs securely in your browser with Ink Signatures and official seals." />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Ink Sign Studio — Secure PDF Signer" />
+    <meta
+      property="og:description"
+      content="Upload, organise and digitally stamp PDFs with your Ink Signature, Designation Seal or Office Seal — entirely in the browser. PIN-protected and offline-capable."
+    />
+    <meta property="og:image" content="logo192.png" />
+    <meta property="og:image:width" content="192" />
+    <meta property="og:image:height" content="192" />
+    <meta property="og:site_name" content="Ink Sign Studio" />
+    <!-- Twitter / X card (also used by WhatsApp as a fallback) -->
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Ink Sign Studio — Secure PDF Signer" />
+    <meta
+      name="twitter:description"
+      content="Browser-based PDF signing with Ink Signature, Designation Seal &amp; Office Seal. No server uploads. PIN-protected."
+    />
+    <meta name="twitter:image" content="logo192.png" />
+    <!-- Standard SEO description -->
+    <meta
+      name="description"
+      content="Ink Sign Studio — upload, merge and stamp PDFs securely in your browser with Ink Signatures and official seals."
+    />
 
-  <link
-    href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap"
-    rel="stylesheet" />
-  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
-    rel="stylesheet" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+      rel="stylesheet"
+    />
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
-  <link rel="stylesheet" href="style.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+    <link rel="stylesheet" href="style.css" />
 
-  <style>
-    /* ── Base ──────────────────────────────────────────────── */
-    * {
-      box-sizing: border-box;
-    }
+    <style>
+      /* ── Base ──────────────────────────────────────────────── */
+      * {
+        box-sizing: border-box;
+      }
 
-    .material-symbols-outlined {
-      font-variation-settings:
-        "FILL" 0,
-        "wght" 400,
-        "GRAD" 0,
-        "opsz" 24;
-    }
+      .material-symbols-outlined {
+        font-variation-settings:
+          "FILL" 0,
+          "wght" 400,
+          "GRAD" 0,
+          "opsz" 24;
+      }
 
-    body {
-      font-family: "Inter", sans-serif;
-      color: #191c1e;
-    }
+      body {
+        font-family: "Inter", sans-serif;
+        color: #191c1e;
+      }
 
-    h1,
-    h2,
-    h3,
-    h4 {
-      font-family: "Manrope", sans-serif;
-    }
+      h1,
+      h2,
+      h3,
+      h4 {
+        font-family: "Manrope", sans-serif;
+      }
 
-    /* ── Glassmorphism ─────────────────────────────────────── */
-    .glass-panel {
-      background: rgba(255, 255, 255, 0.88);
-      backdrop-filter: blur(24px);
-      -webkit-backdrop-filter: blur(24px);
-    }
+      /* ── Glassmorphism ─────────────────────────────────────── */
+      .glass-panel {
+        background: rgba(255, 255, 255, 0.88);
+        backdrop-filter: blur(24px);
+        -webkit-backdrop-filter: blur(24px);
+      }
 
-    .glass-toolbar {
-      background: rgba(255, 255, 255, 0.82);
-      backdrop-filter: blur(24px);
-      -webkit-backdrop-filter: blur(24px);
-    }
+      .glass-toolbar {
+        background: rgba(255, 255, 255, 0.82);
+        backdrop-filter: blur(24px);
+        -webkit-backdrop-filter: blur(24px);
+      }
 
-    /* ── Ink gradient button ─────────────────────────────── */
-    .bg-gradient-ink {
-      background: linear-gradient(180deg, #005bbf 0%, #1a73e8 100%);
-    }
+      /* ── Ink gradient button ─────────────────────────────── */
+      .bg-gradient-ink {
+        background: linear-gradient(180deg, #005bbf 0%, #1a73e8 100%);
+      }
 
-    /* ── PIN dots ─────────────────────────────────────────── */
-    .pin-dot {
-      width: 16px;
-      height: 16px;
-      border-radius: 50%;
-      transition: all 0.2s ease;
-    }
+      /* ── PIN dots ─────────────────────────────────────────── */
+      .pin-dot {
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        transition: all 0.2s ease;
+      }
 
-    /* ══════════════════════════════════════════════════════════
+      /* ══════════════════════════════════════════════════════════
        SPA TAB PANELS
        ─────────────────────────────────────────────────────────
        FIX #1 & #4:
@@ -103,499 +111,499 @@
          <main> inside handles its own overflow-y:auto scrolling.
        - #tab-archive.active scrolls the whole column.
     ══════════════════════════════════════════════════════════ */
-    .tab-panel {
-      display: none;
-    }
+      .tab-panel {
+        display: none;
+      }
 
-    .tab-panel.active {
-      display: flex;
-      flex-direction: column;
-      flex: 1;
-      min-height: 0;
-      /* allow flex item to shrink below content size so children can scroll */
-    }
+      .tab-panel.active {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+        min-height: 0;
+        /* allow flex item to shrink below content size so children can scroll */
+      }
 
-    /* Dashboard is a flex ROW (sidebar + main), clipped at viewport */
-    #tab-dashboard.active {
-      flex-direction: row;
-      overflow: hidden;
-    }
+      /* Dashboard is a flex ROW (sidebar + main), clipped at viewport */
+      #tab-dashboard.active {
+        flex-direction: row;
+        overflow: hidden;
+      }
 
-    /* Archive scrolls the whole panel */
-    #tab-archive.active {
-      overflow-y: auto;
-    }
+      /* Archive scrolls the whole panel */
+      #tab-archive.active {
+        overflow-y: auto;
+      }
 
-    /* ── Top-nav tab link styles ───────────────────────────── */
-    .nav-tab {
-      font-family: "Manrope", sans-serif;
-      font-size: 0.875rem;
-      font-weight: 600;
-      color: #414754;
-      padding-bottom: 4px;
-      cursor: pointer;
-      border-bottom: 2px solid transparent;
-      border-top: none;
-      border-left: none;
-      border-right: none;
-      background: none;
-      transition:
-        color 0.2s,
-        border-color 0.2s;
-    }
+      /* ── Top-nav tab link styles ───────────────────────────── */
+      .nav-tab {
+        font-family: "Manrope", sans-serif;
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #414754;
+        padding-bottom: 4px;
+        cursor: pointer;
+        border-bottom: 2px solid transparent;
+        border-top: none;
+        border-left: none;
+        border-right: none;
+        background: none;
+        transition:
+          color 0.2s,
+          border-color 0.2s;
+      }
 
-    .nav-tab:hover {
-      color: #1a73e8;
-    }
+      .nav-tab:hover {
+        color: #1a73e8;
+      }
 
-    .nav-tab.active {
-      color: #005bbf;
-      border-bottom-color: #005bbf;
-    }
+      .nav-tab.active {
+        color: #005bbf;
+        border-bottom-color: #005bbf;
+      }
 
-    /* ── Fabric canvas wrapper ────────────────────────────── */
-    #pdf-wrapper {
-      position: relative;
-      display: inline-block;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.12);
-      border-radius: 8px;
-      overflow: visible;
-      background: #fff;
-      touch-action: pan-x pan-y;
-    }
+      /* ── Fabric canvas wrapper ────────────────────────────── */
+      #pdf-wrapper {
+        position: relative;
+        display: inline-block;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.12);
+        border-radius: 8px;
+        overflow: visible;
+        background: #fff;
+        touch-action: pan-x pan-y;
+      }
 
-    #pdf-render-canvas {
-      display: block;
-      border-radius: 8px;
-    }
+      #pdf-render-canvas {
+        display: block;
+        border-radius: 8px;
+      }
 
-    /* mix-blend-mode: multiply so white Fabric pixels are transparent on export */
-    .canvas-container {
-      position: absolute !important;
-      top: 0 !important;
-      left: 0 !important;
-      mix-blend-mode: multiply;
-      /* Mobile scroll fix: `auto` hands all touch gestures back to the browser
+      /* mix-blend-mode: multiply so white Fabric pixels are transparent on export */
+      .canvas-container {
+        position: absolute !important;
+        top: 0 !important;
+        left: 0 !important;
+        mix-blend-mode: multiply;
+        /* Mobile scroll fix: `auto` hands all touch gestures back to the browser
          so the overflow container can native-scroll freely.
          `pan-x pan-y` was tried first but Fabric's group-selection still hijacked
          the touch stream; `auto` is the only value that fully passes through.
          The .drawing-active override below re-enables full capture for drawing.
          CSS !important beats Fabric's inline style.touchAction assignments. */
-      touch-action: auto !important;
-    }
+        touch-action: auto !important;
+      }
 
-    /* Same `auto` on the upper (event-capture) canvas layer */
-    .upper-canvas {
-      touch-action: auto !important;
-    }
+      /* Same `auto` on the upper (event-capture) canvas layer */
+      .upper-canvas {
+        touch-action: auto !important;
+      }
 
-    /* While freehand drawing, the browser must NOT intercept touch gestures —
+      /* While freehand drawing, the browser must NOT intercept touch gestures —
        Fabric needs every pointer event to render strokes correctly.
        script.js setDrawingMode() toggles .drawing-active on wrapperEl. */
-    .drawing-active.canvas-container {
-      touch-action: none !important;
-    }
+      .drawing-active.canvas-container {
+        touch-action: none !important;
+      }
 
-    .drawing-active .upper-canvas {
-      touch-action: none !important;
-    }
+      .drawing-active .upper-canvas {
+        touch-action: none !important;
+      }
 
-    /* ── PDF placeholder ──────────────────────────────────── */
-    #pdf-placeholder {
-      width: 560px;
-      aspect-ratio: 1/1.41;
-      background: #fff;
-      border-radius: 12px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      color: #c1c6d6;
-      box-shadow: 0 12px 40px rgba(25, 28, 30, 0.06);
-    }
+      /* ── PDF placeholder ──────────────────────────────────── */
+      #pdf-placeholder {
+        width: 560px;
+        aspect-ratio: 1/1.41;
+        background: #fff;
+        border-radius: 12px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        color: #c1c6d6;
+        box-shadow: 0 12px 40px rgba(25, 28, 30, 0.06);
+      }
 
-    /* ── Page info pill ────────────────────────────────────── */
-    #page-info {
-      position: absolute;
-      bottom: 12px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: rgba(0, 0, 0, 0.55);
-      color: #fff;
-      font-size: 11px;
-      font-family: "Inter", sans-serif;
-      font-weight: 600;
-      padding: 4px 12px;
-      border-radius: 20px;
-      display: none;
-      pointer-events: none;
-      white-space: nowrap;
-      letter-spacing: 0.05em;
-    }
+      /* ── Page info pill ────────────────────────────────────── */
+      #page-info {
+        position: absolute;
+        bottom: 12px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(0, 0, 0, 0.55);
+        color: #fff;
+        font-size: 11px;
+        font-family: "Inter", sans-serif;
+        font-weight: 600;
+        padding: 4px 12px;
+        border-radius: 20px;
+        display: none;
+        pointer-events: none;
+        white-space: nowrap;
+        letter-spacing: 0.05em;
+      }
 
-    /* ── Colour swatches ───────────────────────────────────── */
-    .color-btn {
-      transition:
-        box-shadow 0.15s,
-        transform 0.12s;
-      cursor: pointer;
-    }
+      /* ── Colour swatches ───────────────────────────────────── */
+      .color-btn {
+        transition:
+          box-shadow 0.15s,
+          transform 0.12s;
+        cursor: pointer;
+      }
 
-    .color-btn.active {
-      box-shadow:
-        0 0 0 2px #fff,
-        0 0 0 4px var(--ring-color, #005bbf);
-      transform: scale(1.18);
-    }
+      .color-btn.active {
+        box-shadow:
+          0 0 0 2px #fff,
+          0 0 0 4px var(--ring-color, #005bbf);
+        transform: scale(1.18);
+      }
 
-    /* ── Crosshair when drawing ────────────────────────────── */
-    .drawing-active .upper-canvas {
-      cursor: crosshair !important;
-    }
+      /* ── Crosshair when drawing ────────────────────────────── */
+      .drawing-active .upper-canvas {
+        cursor: crosshair !important;
+      }
 
-    /* ── Sig buttons ────────────────────────────────────────── */
-    .sig-btn {
-      background: rgba(255, 255, 255, 0.6);
-      transition:
-        background 0.18s,
-        box-shadow 0.18s;
-    }
+      /* ── Sig buttons ────────────────────────────────────────── */
+      .sig-btn {
+        background: rgba(255, 255, 255, 0.6);
+        transition:
+          background 0.18s,
+          box-shadow 0.18s;
+      }
 
-    .sig-btn:hover {
-      background: #fff;
-      box-shadow: 0 4px 12px rgba(0, 91, 191, 0.1);
-    }
+      .sig-btn:hover {
+        background: #fff;
+        box-shadow: 0 4px 12px rgba(0, 91, 191, 0.1);
+      }
 
-    /* ── Upload area hover ─────────────────────────────────── */
-    #upload-area:hover {
-      border-color: #005bbf;
-    }
+      /* ── Upload area hover ─────────────────────────────────── */
+      #upload-area:hover {
+        border-color: #005bbf;
+      }
 
-    #upload-area:hover .upload-icon {
-      color: #005bbf;
-    }
+      #upload-area:hover .upload-icon {
+        color: #005bbf;
+      }
 
-    /* ══════════════════════════════════════════════════════════
+      /* ══════════════════════════════════════════════════════════
        DOCUMENT ORGANIZER
        #organizer-screen starts hidden; script.js sets
        .style.display = 'block' in showOrganizerScreen() and
        .style.display = 'none' in showSigningScreen().
        The CSS here must NOT conflict with those JS assignments.
     ══════════════════════════════════════════════════════════ */
-    #organizer-screen {
-      display: none;
-    }
-
-    #thumb-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-      gap: 16px;
-      padding: 8px 2px;
-    }
-
-    .thumb-card {
-      position: relative;
-      background: #fff;
-      border-radius: 12px;
-      overflow: visible;
-      cursor: grab;
-      user-select: none;
-      box-shadow: 0 4px 12px rgba(25, 28, 30, 0.04);
-      transition:
-        box-shadow 0.18s,
-        transform 0.15s;
-      outline: 2px solid transparent;
-      outline-offset: 2px;
-    }
-
-    .thumb-card:hover {
-      box-shadow: 0 8px 24px rgba(0, 91, 191, 0.12);
-      outline-color: rgba(0, 91, 191, 0.25);
-    }
-
-    .thumb-card.drag-over {
-      outline-color: #005bbf;
-      box-shadow: 0 0 0 3px rgba(0, 91, 191, 0.2);
-      transform: scale(1.03);
-    }
-
-    .thumb-card.dragging {
-      opacity: 0.35;
-      cursor: grabbing;
-    }
-
-    .thumb-card canvas {
-      display: block;
-      width: 100%;
-      height: auto;
-      border-radius: 10px 10px 0 0;
-      pointer-events: none;
-    }
-
-    .thumb-card .thumb-footer {
-      padding: 5px 6px 7px;
-      font-size: 10px;
-      font-family: "Inter", sans-serif;
-      font-weight: 600;
-      color: #414754;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      border-top: 1px solid rgba(193, 198, 214, 0.3);
-    }
-
-    .thumb-card .thumb-del {
-      background: none;
-      border: none;
-      cursor: pointer;
-      color: #b91c1c;
-      padding: 2px;
-      border-radius: 4px;
-      line-height: 1;
-      transition: background 0.14s;
-      display: flex;
-      align-items: center;
-    }
-
-    .thumb-card .thumb-del:hover {
-      background: #fee2e2;
-    }
-
-    /* Rotate / Move buttons share thumb-del base; override hover colour */
-    .thumb-card button[title="Rotate 90°"]:hover {
-      background: #dbeafe !important;
-    }
-
-    .thumb-card button[title="Move Left"]:hover,
-    .thumb-card button[title="Move Right"]:hover {
-      background: #dbeafe !important;
-    }
-
-    .thumb-card .drag-handle {
-      position: absolute;
-      top: 5px;
-      right: 5px;
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 2px;
-      opacity: 0;
-      transition: opacity 0.15s;
-      pointer-events: none;
-    }
-
-    .thumb-card:hover .drag-handle {
-      opacity: 1;
-    }
-
-    .thumb-card .drag-handle span {
-      width: 4px;
-      height: 4px;
-      border-radius: 50%;
-      background: rgba(0, 91, 191, 0.55);
-    }
-
-    /* ══ GLOBAL LOADING OVERLAY ══════════════════════════════ */
-    #loading-overlay {
-      position: fixed;
-      inset: 0;
-      z-index: 9999;
-      background: rgba(15, 23, 42, 0.55);
-      backdrop-filter: blur(4px);
-      -webkit-backdrop-filter: blur(4px);
-      display: none;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 18px;
-      font-family: "Inter", sans-serif;
-    }
-
-    #loading-overlay.active {
-      display: flex;
-    }
-
-    #loading-overlay .lo-spinner {
-      width: 52px;
-      height: 52px;
-      border-radius: 50%;
-      border: 5px solid rgba(255, 255, 255, 0.2);
-      border-top-color: #fff;
-      animation: lo-spin 0.75s linear infinite;
-    }
-
-    #loading-overlay .lo-text {
-      color: #fff;
-      font-size: 13px;
-      font-weight: 700;
-      letter-spacing: 0.04em;
-      opacity: 0.92;
-    }
-
-    @keyframes lo-spin {
-      to {
-        transform: rotate(360deg);
+      #organizer-screen {
+        display: none;
       }
-    }
 
-    /* ══ STAMP HINT BANNER ═══════════════════════════════════ */
-    #stamp-hint {
-      display: none;
-      align-items: center;
-      gap: 8px;
-      padding: 7px 14px;
-      background: #005bbf;
-      color: #fff;
-      font-family: "Inter", sans-serif;
-      font-size: 11px;
-      font-weight: 700;
-      border-radius: 10px;
-      box-shadow: 0 4px 14px rgba(0, 91, 191, 0.3);
-      user-select: none;
-      letter-spacing: 0.02em;
-    }
+      #thumb-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+        gap: 16px;
+        padding: 8px 2px;
+      }
 
-    /* ══ TEXT PLACING HINT BANNER ════════════════════════════
+      .thumb-card {
+        position: relative;
+        background: #fff;
+        border-radius: 12px;
+        overflow: visible;
+        cursor: grab;
+        user-select: none;
+        box-shadow: 0 4px 12px rgba(25, 28, 30, 0.04);
+        transition:
+          box-shadow 0.18s,
+          transform 0.15s;
+        outline: 2px solid transparent;
+        outline-offset: 2px;
+      }
+
+      .thumb-card:hover {
+        box-shadow: 0 8px 24px rgba(0, 91, 191, 0.12);
+        outline-color: rgba(0, 91, 191, 0.25);
+      }
+
+      .thumb-card.drag-over {
+        outline-color: #005bbf;
+        box-shadow: 0 0 0 3px rgba(0, 91, 191, 0.2);
+        transform: scale(1.03);
+      }
+
+      .thumb-card.dragging {
+        opacity: 0.35;
+        cursor: grabbing;
+      }
+
+      .thumb-card canvas {
+        display: block;
+        width: 100%;
+        height: auto;
+        border-radius: 10px 10px 0 0;
+        pointer-events: none;
+      }
+
+      .thumb-card .thumb-footer {
+        padding: 5px 6px 7px;
+        font-size: 10px;
+        font-family: "Inter", sans-serif;
+        font-weight: 600;
+        color: #414754;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-top: 1px solid rgba(193, 198, 214, 0.3);
+      }
+
+      .thumb-card .thumb-del {
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: #b91c1c;
+        padding: 2px;
+        border-radius: 4px;
+        line-height: 1;
+        transition: background 0.14s;
+        display: flex;
+        align-items: center;
+      }
+
+      .thumb-card .thumb-del:hover {
+        background: #fee2e2;
+      }
+
+      /* Rotate / Move buttons share thumb-del base; override hover colour */
+      .thumb-card button[title="Rotate 90°"]:hover {
+        background: #dbeafe !important;
+      }
+
+      .thumb-card button[title="Move Left"]:hover,
+      .thumb-card button[title="Move Right"]:hover {
+        background: #dbeafe !important;
+      }
+
+      .thumb-card .drag-handle {
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2px;
+        opacity: 0;
+        transition: opacity 0.15s;
+        pointer-events: none;
+      }
+
+      .thumb-card:hover .drag-handle {
+        opacity: 1;
+      }
+
+      .thumb-card .drag-handle span {
+        width: 4px;
+        height: 4px;
+        border-radius: 50%;
+        background: rgba(0, 91, 191, 0.55);
+      }
+
+      /* ══ GLOBAL LOADING OVERLAY ══════════════════════════════ */
+      #loading-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        background: rgba(15, 23, 42, 0.55);
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+        display: none;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 18px;
+        font-family: "Inter", sans-serif;
+      }
+
+      #loading-overlay.active {
+        display: flex;
+      }
+
+      #loading-overlay .lo-spinner {
+        width: 52px;
+        height: 52px;
+        border-radius: 50%;
+        border: 5px solid rgba(255, 255, 255, 0.2);
+        border-top-color: #fff;
+        animation: lo-spin 0.75s linear infinite;
+      }
+
+      #loading-overlay .lo-text {
+        color: #fff;
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        opacity: 0.92;
+      }
+
+      @keyframes lo-spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      /* ══ STAMP HINT BANNER ═══════════════════════════════════ */
+      #stamp-hint {
+        display: none;
+        align-items: center;
+        gap: 8px;
+        padding: 7px 14px;
+        background: #005bbf;
+        color: #fff;
+        font-family: "Inter", sans-serif;
+        font-size: 11px;
+        font-weight: 700;
+        border-radius: 10px;
+        box-shadow: 0 4px 14px rgba(0, 91, 191, 0.3);
+        user-select: none;
+        letter-spacing: 0.02em;
+      }
+
+      /* ══ TEXT PLACING HINT BANNER ════════════════════════════
        Injected by script.js §7·5 (enterTextPlacingMode).
        Purple variant to differentiate from the blue stamp hint.
     ══════════════════════════════════════════════════════════ */
-    #text-hint {
-      display: none;
-      align-items: center;
-      gap: 8px;
-      padding: 7px 14px;
-      background: #7c3aed;
-      color: #fff;
-      font-family: "Inter", sans-serif;
-      font-size: 11px;
-      font-weight: 700;
-      border-radius: 10px;
-      box-shadow: 0 4px 14px rgba(124, 58, 237, 0.3);
-      user-select: none;
-      letter-spacing: 0.02em;
-    }
-
-    /* ══ ARCHIVE DOCUMENT ROWS ═══════════════════════════════ */
-    .doc-row {
-      display: flex;
-      align-items: center;
-      padding: 18px 20px;
-      background: #ffffff;
-      border-radius: 16px;
-      box-shadow: 0 4px 12px rgba(25, 28, 30, 0.03);
-      transition: box-shadow 0.2s;
-      border: 1px solid rgba(255, 255, 255, 0.6);
-    }
-
-    .doc-row:hover {
-      box-shadow: 0 8px 24px rgba(25, 28, 30, 0.06);
-    }
-
-    /* ══ PIN SCREEN ANIMATION ════════════════════════════════ */
-    @keyframes pin-card-in {
-      from {
-        opacity: 0;
-        transform: scale(0.96) translateY(10px);
+      #text-hint {
+        display: none;
+        align-items: center;
+        gap: 8px;
+        padding: 7px 14px;
+        background: #7c3aed;
+        color: #fff;
+        font-family: "Inter", sans-serif;
+        font-size: 11px;
+        font-weight: 700;
+        border-radius: 10px;
+        box-shadow: 0 4px 14px rgba(124, 58, 237, 0.3);
+        user-select: none;
+        letter-spacing: 0.02em;
       }
 
-      to {
-        opacity: 1;
-        transform: scale(1) translateY(0);
+      /* ══ ARCHIVE DOCUMENT ROWS ═══════════════════════════════ */
+      .doc-row {
+        display: flex;
+        align-items: center;
+        padding: 18px 20px;
+        background: #ffffff;
+        border-radius: 16px;
+        box-shadow: 0 4px 12px rgba(25, 28, 30, 0.03);
+        transition: box-shadow 0.2s;
+        border: 1px solid rgba(255, 255, 255, 0.6);
       }
-    }
 
-    #pin-screen .pin-card {
-      animation: pin-card-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
-    }
+      .doc-row:hover {
+        box-shadow: 0 8px 24px rgba(25, 28, 30, 0.06);
+      }
 
-    /* ══ ARCHIVE SEARCH INPUT ════════════════════════════════ */
-    .archive-search {
-      background: #f2f4f6;
-      border: none;
-      border-radius: 12px;
-      padding: 10px 16px;
-      font-size: 14px;
-      font-family: "Inter", sans-serif;
-      color: #191c1e;
-      width: 300px;
-      transition:
-        background 0.2s,
-        box-shadow 0.2s;
-      outline: none;
-    }
+      /* ══ PIN SCREEN ANIMATION ════════════════════════════════ */
+      @keyframes pin-card-in {
+        from {
+          opacity: 0;
+          transform: scale(0.96) translateY(10px);
+        }
 
-    .archive-search:focus {
-      background: #fff;
-      box-shadow: 0 0 0 2px rgba(0, 91, 191, 0.18);
-    }
+        to {
+          opacity: 1;
+          transform: scale(1) translateY(0);
+        }
+      }
 
-    /* ══ MINI STAT CHIP ══════════════════════════════════════ */
-    .stat-chip {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 5px 12px;
-      border-radius: 100px;
-      font-size: 11px;
-      font-weight: 700;
-      font-family: "Manrope", sans-serif;
-      letter-spacing: 0.03em;
-    }
+      #pin-screen .pin-card {
+        animation: pin-card-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+      }
 
-    /* Subtle dot-grid texture for the canvas workspace */
-    .signature-canvas-bg {
-      background-image:
-        linear-gradient(to right, rgba(0, 0, 0, 0.025) 1px, transparent 1px),
-        linear-gradient(to bottom, rgba(0, 0, 0, 0.025) 1px, transparent 1px);
-      background-size: 22px 22px;
-      /* allow smooth two-finger pan on touch devices */
-      touch-action: pan-x pan-y;
-    }
+      /* ══ ARCHIVE SEARCH INPUT ════════════════════════════════ */
+      .archive-search {
+        background: #f2f4f6;
+        border: none;
+        border-radius: 12px;
+        padding: 10px 16px;
+        font-size: 14px;
+        font-family: "Inter", sans-serif;
+        color: #191c1e;
+        width: 300px;
+        transition:
+          background 0.2s,
+          box-shadow 0.2s;
+        outline: none;
+      }
 
-    /* ══════════════════════════════════════════════════════════
+      .archive-search:focus {
+        background: #fff;
+        box-shadow: 0 0 0 2px rgba(0, 91, 191, 0.18);
+      }
+
+      /* ══ MINI STAT CHIP ══════════════════════════════════════ */
+      .stat-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 5px 12px;
+        border-radius: 100px;
+        font-size: 11px;
+        font-weight: 700;
+        font-family: "Manrope", sans-serif;
+        letter-spacing: 0.03em;
+      }
+
+      /* Subtle dot-grid texture for the canvas workspace */
+      .signature-canvas-bg {
+        background-image:
+          linear-gradient(to right, rgba(0, 0, 0, 0.025) 1px, transparent 1px),
+          linear-gradient(to bottom, rgba(0, 0, 0, 0.025) 1px, transparent 1px);
+        background-size: 22px 22px;
+        /* allow smooth two-finger pan on touch devices */
+        touch-action: pan-x pan-y;
+      }
+
+      /* ══════════════════════════════════════════════════════════
        FIX #3: PIN INPUT — guaranteed white background + visible
        border enforced with !important so neither Tailwind's
        forms-plugin resets nor the glass-panel translucent
        backdrop can bleed through and make the field invisible.
     ══════════════════════════════════════════════════════════ */
-    #pin-input {
-      background-color: #ffffff !important;
-      border: 2.5px solid rgba(0, 91, 191, 0.4) !important;
-      box-shadow:
-        0 4px 20px rgba(0, 91, 191, 0.08),
-        inset 0 2px 6px rgba(0, 0, 0, 0.03) !important;
-      outline: none !important;
-      -webkit-appearance: none;
-      appearance: none;
-    }
+      #pin-input {
+        background-color: #ffffff !important;
+        border: 2.5px solid rgba(0, 91, 191, 0.4) !important;
+        box-shadow:
+          0 4px 20px rgba(0, 91, 191, 0.08),
+          inset 0 2px 6px rgba(0, 0, 0, 0.03) !important;
+        outline: none !important;
+        -webkit-appearance: none;
+        appearance: none;
+      }
 
-    #pin-input:focus {
-      border-color: rgba(0, 91, 191, 0.75) !important;
-      box-shadow:
-        0 0 0 4px rgba(0, 91, 191, 0.12),
-        0 4px 20px rgba(0, 91, 191, 0.12) !important;
-    }
+      #pin-input:focus {
+        border-color: rgba(0, 91, 191, 0.75) !important;
+        box-shadow:
+          0 0 0 4px rgba(0, 91, 191, 0.12),
+          0 4px 20px rgba(0, 91, 191, 0.12) !important;
+      }
 
-    /* Sidebar scrollbar */
-    aside::-webkit-scrollbar {
-      width: 4px;
-    }
+      /* Sidebar scrollbar */
+      aside::-webkit-scrollbar {
+        width: 4px;
+      }
 
-    aside::-webkit-scrollbar-thumb {
-      background: rgba(193, 198, 214, 0.5);
-      border-radius: 4px;
-    }
+      aside::-webkit-scrollbar-thumb {
+        background: rgba(193, 198, 214, 0.5);
+        border-radius: 4px;
+      }
 
-    /* Archive panel scrollbar */
-    #tab-archive::-webkit-scrollbar {
-      width: 5px;
-    }
+      /* Archive panel scrollbar */
+      #tab-archive::-webkit-scrollbar {
+        width: 5px;
+      }
 
-    #tab-archive::-webkit-scrollbar-thumb {
-      background: rgba(193, 198, 214, 0.6);
-      border-radius: 4px;
-    }
+      #tab-archive::-webkit-scrollbar-thumb {
+        background: rgba(193, 198, 214, 0.6);
+        border-radius: 4px;
+      }
 
-    /* ════════════════════════════════════════════════════════════
+      /* ════════════════════════════════════════════════════════════
        MOBILE RESPONSIVE SIDEBAR
        ─────────────────────────────────────────────────────────
        On screens narrower than md (768px) the sidebar becomes a
@@ -604,9 +612,8 @@
        On md+ the sidebar is in normal document flow; the fixed
        positioning and transforms are not applied there.
     ════════════════════════════════════════════════════════════ */
-    @media (max-width: 767px) {
-
-      /* ── DVH root fix ──────────────────────────────────────────────
+      @media (max-width: 767px) {
+        /* ── DVH root fix ──────────────────────────────────────────────
          #app-dashboard uses h-screen (= height:100vh) from its Tailwind
          class.  On mobile browsers the URL / navigation bar means 100vh
          is LARGER than the actual visible viewport, breaking the flex
@@ -616,98 +623,103 @@
          propagates down through every flex:1 child and lets <main> create
          real scrollbars for wide / tall PDF canvases.
         ─────────────────────────────────────────────────────────────── */
-      #app-dashboard {
-        height: 100dvh;
-      }
+        #app-dashboard {
+          height: 100dvh;
+        }
 
-      /* Sidebar: fixed overlay, hidden off-screen to the left by default */
-      #app-sidebar {
-        position: fixed !important;
-        top: 0;
-        left: 0;
-        bottom: 0;
-        z-index: 50;
-        height: 100dvh !important;
-        transform: translateX(-100%);
-        transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
-        box-shadow: 4px 0 24px rgba(25, 28, 30, 0.14);
-      }
+        /* Sidebar: fixed overlay, hidden off-screen to the left by default */
+        #app-sidebar {
+          position: fixed !important;
+          top: 0;
+          left: 0;
+          bottom: 0;
+          z-index: 50;
+          height: 100dvh !important;
+          transform: translateX(-100%);
+          transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+          box-shadow: 4px 0 24px rgba(25, 28, 30, 0.14);
+        }
 
-      /* Slide into view when .sidebar-open is set by script.js */
-      #app-sidebar.sidebar-open {
-        transform: translateX(0);
-      }
+        /* Slide into view when .sidebar-open is set by script.js */
+        #app-sidebar.sidebar-open {
+          transform: translateX(0);
+        }
 
-      /* Main canvas area stacks vertically on mobile.
+        /* Main canvas area stacks vertically on mobile.
          overflow:hidden (not auto) is critical — it bounds the flex column so
          <main>'s own overflow-auto can create real scrollbars. If this were
          overflow:auto, <main> would expand to fit content and never scroll. */
-      #tab-dashboard.active {
-        flex-direction: column;
-        overflow: hidden;
-      }
+        #tab-dashboard.active {
+          flex-direction: column;
+          overflow: hidden;
+        }
 
-      /* <main> must fill the remaining height after the header and be
+        /* <main> must fill the remaining height after the header and be
          the scroll container for wide / tall PDF canvases on mobile.
          -webkit-overflow-scrolling:touch enables momentum scrolling on
          older iOS Safari; overflow:auto is already set via Tailwind but
          we repeat it here to be explicit and ensure it wins on mobile. */
-      #tab-dashboard.active>main {
-        flex: 1 1 0%;
-        min-height: 0;
-        min-width: 0;
-        overflow: auto;
-        -webkit-overflow-scrolling: touch;
+        #tab-dashboard.active > main {
+          flex: 1 1 0%;
+          min-height: 0;
+          min-width: 0;
+          overflow: auto;
+          -webkit-overflow-scrolling: touch;
+          touch-action: pan-x pan-y;
+        }
+
+        /* PDF placeholder can be narrower on mobile */
+        #pdf-placeholder {
+          width: min(90vw, 420px);
+        }
+
+        /* Archive search full-width on mobile */
+        .archive-search {
+          width: 100%;
+          max-width: 260px;
+        }
+
+        /* Organizer: constrain height and allow vertical touch-scroll on mobile */
+        #organizer-screen {
+          max-height: calc(100dvh - 120px);
+          overflow-y: auto;
+          -webkit-overflow-scrolling: touch;
+        }
       }
 
-      /* PDF placeholder can be narrower on mobile */
-      #pdf-placeholder {
-        width: min(90vw, 420px);
-      }
-
-      /* Archive search full-width on mobile */
-      .archive-search {
-        width: 100%;
-        max-width: 260px;
-      }
-
-      /* Organizer: constrain height and allow vertical touch-scroll on mobile */
-      #organizer-screen {
-        max-height: calc(100dvh - 120px);
-        overflow-y: auto;
-        -webkit-overflow-scrolling: touch;
-      }
-    }
-
-    /* Semi-transparent backdrop behind the mobile sidebar */
-    #mobile-sidebar-backdrop {
-      display: none;
-    }
-
-    @media (max-width: 767px) {
+      /* Semi-transparent backdrop behind the mobile sidebar */
       #mobile-sidebar-backdrop {
-        display: block;
-        position: fixed;
-        inset: 0;
-        z-index: 49;
-        background: rgba(25, 28, 30, 0.45);
-        backdrop-filter: blur(2px);
-        -webkit-backdrop-filter: blur(2px);
-        transition: opacity 0.25s ease;
+        display: none;
       }
-    }
-  </style>
-</head>
 
-<body class="bg-surface font-body text-on-surface min-h-screen overflow-hidden">
-  <!-- ════════════════════════════════════════════════════════════
+      @media (max-width: 767px) {
+        #mobile-sidebar-backdrop {
+          display: block;
+          position: fixed;
+          inset: 0;
+          z-index: 49;
+          background: rgba(25, 28, 30, 0.45);
+          backdrop-filter: blur(2px);
+          -webkit-backdrop-filter: blur(2px);
+          transition: opacity 0.25s ease;
+        }
+      }
+    </style>
+  </head>
+
+  <body
+    class="bg-surface font-body text-on-surface min-h-screen overflow-hidden"
+  >
+    <!-- ════════════════════════════════════════════════════════════
      APP SHELL  (blurred/dimmed until PIN passes)
      script.js unlockApp() removes: blur-md, pointer-events-none,
      grayscale-[0.2], opacity-40
 ════════════════════════════════════════════════════════════ -->
-  <div id="app-dashboard"
-    class="filter blur-md pointer-events-none opacity-40 grayscale-[0.2] transition-all duration-700 ease-in-out h-screen w-full flex flex-col">
-    <!-- ══════════════════════════════════════════════════════════
+    <div
+      id="app-dashboard"
+      class="filter blur-md pointer-events-none opacity-40 grayscale-[0.2] transition-all duration-700 ease-in-out h-screen w-full flex flex-col"
+    >
+      <!-- ══════════════════════════════════════════════════════════
        TOP NAVIGATION BAR
        ──────────────────────────────────────────────────────────
        MOBILE HEADER FIX (Fix 4):
@@ -722,17 +734,21 @@
            prevent crowding on the very smallest screens.
            Class changed from "flex items-center…" → "hidden xs:flex items-center…"
   ══════════════════════════════════════════════════════════════ -->
-    <header
-      class="w-full sticky top-0 z-40 bg-surface-bright flex items-center justify-between px-4 md:px-8 h-14 md:h-16 shadow-[0_1px_0_rgba(193,198,214,0.35)]">
-      <!-- Left: Hamburger (mobile) + Brand + Nav Tabs -->
-      <div class="flex items-center gap-3 md:gap-8">
-        <!-- Hamburger — only visible on mobile (hidden on md+) -->
-        <button id="btn-mobile-menu" aria-label="Open tools sidebar"
-          class="md:hidden flex items-center justify-center w-9 h-9 rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-colors">
-          <span class="material-symbols-outlined text-xl">menu</span>
-        </button>
+      <header
+        class="w-full sticky top-0 z-40 bg-surface-bright flex items-center justify-between px-4 md:px-8 h-14 md:h-16 shadow-[0_1px_0_rgba(193,198,214,0.35)]"
+      >
+        <!-- Left: Hamburger (mobile) + Brand + Nav Tabs -->
+        <div class="flex items-center gap-3 md:gap-8">
+          <!-- Hamburger — only visible on mobile (hidden on md+) -->
+          <button
+            id="btn-mobile-menu"
+            aria-label="Open tools sidebar"
+            class="md:hidden flex items-center justify-center w-9 h-9 rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-colors"
+          >
+            <span class="material-symbols-outlined text-xl">menu</span>
+          </button>
 
-        <!-- Logo / Brand
+          <!-- Logo / Brand
            ─────────────────────────────────────────────────────
            MOBILE HEADER FIX: The brand text is hidden below the
            custom xs (480px) breakpoint so only the logo image
@@ -740,40 +756,52 @@
            from becoming overcrowded.
            The logo image itself is always visible.
       ─────────────────────────────────────────────────────────-->
-        <a href="#" class="flex items-center gap-2.5 shrink-0">
-          <img src="logo192.png" alt="Ink Sign Studio" class="w-7 h-7 md:w-8 md:h-8 rounded-lg object-contain" onerror="
+          <a href="#" class="flex items-center gap-2.5 shrink-0">
+            <img
+              src="logo192.png"
+              alt="Ink Sign Studio"
+              class="w-7 h-7 md:w-8 md:h-8 rounded-lg object-contain"
+              onerror="
                 this.style.display = 'none';
                 this.nextElementSibling.style.display = 'flex';
-              " />
-          <div class="w-7 h-7 md:w-8 md:h-8 rounded-lg bg-primary items-center justify-center text-white"
-            style="display: none">
-            <span class="material-symbols-outlined text-base">history_edu</span>
-          </div>
-          <!-- Hidden below xs (480px), visible xs and above -->
-          <span
-            class="hidden xs:inline font-headline font-extrabold text-base md:text-lg tracking-tight text-on-surface">
-            Ink Sign Studio
-          </span>
-        </a>
+              "
+            />
+            <div
+              class="w-7 h-7 md:w-8 md:h-8 rounded-lg bg-primary items-center justify-center text-white"
+              style="display: none"
+            >
+              <span class="material-symbols-outlined text-base"
+                >history_edu</span
+              >
+            </div>
+            <!-- Hidden below xs (480px), visible xs and above -->
+            <span
+              class="hidden xs:inline font-headline font-extrabold text-base md:text-lg tracking-tight text-on-surface"
+            >
+              Ink Sign Studio
+            </span>
+          </a>
 
-        <!-- SPA Nav Tabs — only Dashboard and Archive -->
-        <nav class="hidden md:flex gap-7 ml-2">
-          <button class="nav-tab active" data-tab="dashboard">
+          <!-- SPA Nav Tabs — only Dashboard and Archive -->
+          <nav class="hidden md:flex gap-7 ml-2">
+            <button class="nav-tab active" data-tab="dashboard">
+              Dashboard
+            </button>
+            <button class="nav-tab" data-tab="archive">Archive</button>
+          </nav>
+        </div>
+
+        <!-- Mobile center nav tabs (shown only on small screens) -->
+        <nav
+          class="flex md:hidden items-center gap-4 absolute left-1/2 -translate-x-1/2"
+        >
+          <button class="nav-tab active text-sm" data-tab="dashboard">
             Dashboard
           </button>
-          <button class="nav-tab" data-tab="archive">Archive</button>
+          <button class="nav-tab text-sm" data-tab="archive">Archive</button>
         </nav>
-      </div>
 
-      <!-- Mobile center nav tabs (shown only on small screens) -->
-      <nav class="flex md:hidden items-center gap-4 absolute left-1/2 -translate-x-1/2">
-        <button class="nav-tab active text-sm" data-tab="dashboard">
-          Dashboard
-        </button>
-        <button class="nav-tab text-sm" data-tab="archive">Archive</button>
-      </nav>
-
-      <!-- Right: Actions
+        <!-- Right: Actions
          ───────────────────────────────────────────────────────
          MOBILE HEADER FIX:
            • "E-sign Active" chip — hidden sm:flex (unchanged):
@@ -784,266 +812,389 @@
              jostling the absolutely-centred tab pills on the
              very smallest phones (< 480px).
     ──────────────────────────────────────────────────────────-->
-      <div class="flex items-center gap-2">
-        <!-- E-sign Active status chip: hidden below sm (640px) -->
-        <div class="hidden sm:flex items-center gap-1.5 bg-tertiary-fixed/60 px-3 py-1.5 rounded-full mr-2">
-          <span class="material-symbols-outlined text-sm text-on-tertiary-fixed"
-            style="font-variation-settings: &quot;FILL&quot; 1">verified_user</span>
-          <span class="text-[10px] font-bold text-on-tertiary-fixed uppercase tracking-wider">
-            E-Sign Active
-          </span>
+        <div class="flex items-center gap-2">
+          <!-- E-sign Active status chip: hidden below sm (640px) -->
+          <div
+            class="hidden sm:flex items-center gap-1.5 bg-tertiary-fixed/60 px-3 py-1.5 rounded-full mr-2"
+          >
+            <span
+              class="material-symbols-outlined text-sm text-on-tertiary-fixed"
+              style="font-variation-settings: &quot;FILL&quot; 1"
+              >verified_user</span
+            >
+            <span
+              class="text-[10px] font-bold text-on-tertiary-fixed uppercase tracking-wider"
+            >
+              E-Sign Active
+            </span>
+          </div>
+
+          <!-- Reset App button: hidden below xs (480px), icon-only below sm (640px) -->
+          <button
+            id="btn-reset-app"
+            title="Reset App — clears PIN, stamps and archive history"
+            class="hidden xs:flex items-center gap-1.5 px-2 md:px-3 py-1.5 rounded-lg text-[11px] font-bold text-red-500 hover:bg-red-50 transition-all"
+          >
+            <span class="material-symbols-outlined text-sm">delete_sweep</span>
+            <span class="hidden sm:inline">Reset</span>
+          </button>
         </div>
+      </header>
 
-        <!-- Reset App button: hidden below xs (480px), icon-only below sm (640px) -->
-        <button id="btn-reset-app" title="Reset App — clears PIN, stamps and archive history"
-          class="hidden xs:flex items-center gap-1.5 px-2 md:px-3 py-1.5 rounded-lg text-[11px] font-bold text-red-500 hover:bg-red-50 transition-all">
-          <span class="material-symbols-outlined text-sm">delete_sweep</span>
-          <span class="hidden sm:inline">Reset</span>
-        </button>
-      </div>
-    </header>
-
-    <!-- ══════════════════════════════════════════════════════════
+      <!-- ══════════════════════════════════════════════════════════
        TAB PANELS CONTAINER
        Fills the space below the header.  The active tab panel
        expands to fill this flex container.
   ══════════════════════════════════════════════════════════════ -->
-    <div class="flex flex-1 overflow-hidden relative">
-      <!-- Mobile sidebar backdrop — tapping closes the sidebar on small screens -->
-      <div id="mobile-sidebar-backdrop" class="opacity-0 pointer-events-none"></div>
+      <div class="flex flex-1 overflow-hidden relative">
+        <!-- Mobile sidebar backdrop — tapping closes the sidebar on small screens -->
+        <div
+          id="mobile-sidebar-backdrop"
+          class="opacity-0 pointer-events-none"
+        ></div>
 
-      <!-- ══════════════════════════════════════════════════════
+        <!-- ══════════════════════════════════════════════════════
          TAB 1 — DASHBOARD
     ══════════════════════════════════════════════════════════ -->
-      <div id="tab-dashboard" class="tab-panel active w-full">
-        <!-- ── SIDEBAR ─────────────────────────────────────────── -->
-        <!-- id="app-sidebar" is used by script.js §MOBILE toggle.
+        <div id="tab-dashboard" class="tab-panel active w-full">
+          <!-- ── SIDEBAR ─────────────────────────────────────────── -->
+          <!-- id="app-sidebar" is used by script.js §MOBILE toggle.
            On md+ it sits in normal document flow (w-72, shrink-0).
            On mobile it becomes a fixed overlay via the CSS media query. -->
-        <aside id="app-sidebar"
-          class="h-full w-72 shrink-0 bg-surface-container-low flex flex-col p-5 gap-y-3 overflow-y-auto shadow-[1px_0_0_rgba(193,198,214,0.25)]">
-          <!-- Studio brand pill -->
-          <div class="flex items-center gap-3 mb-1">
-            <div class="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-white shadow-ambient-sm">
-              <span class="material-symbols-outlined">history_edu</span>
+          <aside
+            id="app-sidebar"
+            class="h-full w-72 shrink-0 bg-surface-container-low flex flex-col p-5 gap-y-3 overflow-y-auto shadow-[1px_0_0_rgba(193,198,214,0.25)]"
+          >
+            <!-- Studio brand pill -->
+            <div class="flex items-center gap-3 mb-1">
+              <div
+                class="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-white shadow-ambient-sm"
+              >
+                <span class="material-symbols-outlined">history_edu</span>
+              </div>
+              <div>
+                <h2 class="font-headline font-bold text-sm leading-tight">
+                  Document Studio
+                </h2>
+                <span
+                  class="text-[10px] uppercase tracking-widest text-primary opacity-80"
+                >
+                  Secure Session Active
+                </span>
+              </div>
             </div>
-            <div>
-              <h2 class="font-headline font-bold text-sm leading-tight">
-                Document Studio
-              </h2>
-              <span class="text-[10px] uppercase tracking-widest text-primary opacity-80">
-                Secure Session Active
+
+            <!-- Upload zone — always visible; click triggers #pdf-file-input -->
+            <div
+              id="upload-area"
+              class="cursor-pointer p-4 border-2 border-dashed border-outline-variant hover:border-primary rounded-xl transition-all bg-surface-container-lowest/60 text-center"
+            >
+              <span
+                class="material-symbols-outlined upload-icon text-primary text-3xl mb-1"
+              >
+                upload_file
               </span>
+              <div
+                class="font-label text-xs tracking-wide uppercase font-semibold text-primary"
+              >
+                Upload PDF(s)
+              </div>
+              <p class="text-[10px] text-on-surface-variant/60 mt-1">
+                Multiple files · Max 25 MB each
+              </p>
             </div>
-          </div>
 
-          <!-- Upload zone — always visible; click triggers #pdf-file-input -->
-          <div id="upload-area"
-            class="cursor-pointer p-4 border-2 border-dashed border-outline-variant hover:border-primary rounded-xl transition-all bg-surface-container-lowest/60 text-center">
-            <span class="material-symbols-outlined upload-icon text-primary text-3xl mb-1">
-              upload_file
-            </span>
-            <div class="font-label text-xs tracking-wide uppercase font-semibold text-primary">
-              Upload PDF(s)
-            </div>
-            <p class="text-[10px] text-on-surface-variant/60 mt-1">
-              Multiple files · Max 25 MB each
-            </p>
-          </div>
-
-          <!-- ── ORGANIZER CONTROLS ──────────────────────────────
+            <!-- ── ORGANIZER CONTROLS ──────────────────────────────
              Starts hidden via style="display:none".
              script.js showOrganizerScreen() → display:'flex'
              script.js showSigningScreen()   → display:'none'
         ─────────────────────────────────────────────────────── -->
-          <div id="organizer-controls" style="display: none" class="flex flex-col gap-y-3">
-            <div class="h-px bg-outline-variant/20"></div>
-            <h3 class="font-label text-[10px] tracking-widest uppercase font-bold text-on-surface-variant">
-              Document Organizer
-            </h3>
-            <!-- MOBILE REORDER FIX: hint updated to mention ← → buttons for mobile users -->
-            <p class="text-[10px] text-on-surface-variant leading-relaxed">
-              Tap <span class="font-bold text-primary">←&nbsp;→</span> to
-              reorder pages · drag thumbnails on desktop · tap
-              <span class="material-symbols-outlined text-[11px] align-middle">close</span>
-              to remove · upload more PDFs above.
-            </p>
+            <div
+              id="organizer-controls"
+              style="display: none"
+              class="flex flex-col gap-y-3"
+            >
+              <div class="h-px bg-outline-variant/20"></div>
+              <h3
+                class="font-label text-[10px] tracking-widest uppercase font-bold text-on-surface-variant"
+              >
+                Document Organizer
+              </h3>
+              <!-- MOBILE REORDER FIX: hint updated to mention ← → buttons for mobile users -->
+              <p class="text-[10px] text-on-surface-variant leading-relaxed">
+                Tap <span class="font-bold text-primary">←&nbsp;→</span> to
+                reorder pages · drag thumbnails on desktop · tap
+                <span class="material-symbols-outlined text-[11px] align-middle"
+                  >close</span
+                >
+                to remove · upload more PDFs above.
+              </p>
 
-            <!-- Page count badge -->
-            <div class="flex items-center gap-2 bg-primary/8 rounded-xl px-3 py-2.5">
-              <span class="material-symbols-outlined text-primary text-base">description</span>
-              <span id="org-page-count" class="text-xs font-bold text-primary font-headline">0 pages</span>
+              <!-- Page count badge -->
+              <div
+                class="flex items-center gap-2 bg-primary/8 rounded-xl px-3 py-2.5"
+              >
+                <span class="material-symbols-outlined text-primary text-base"
+                  >description</span
+                >
+                <span
+                  id="org-page-count"
+                  class="text-xs font-bold text-primary font-headline"
+                  >0 pages</span
+                >
+              </div>
+
+              <!-- Clear All Pages -->
+              <button
+                id="btn-clear-organizer"
+                class="w-full py-2 rounded-lg font-bold text-xs flex items-center justify-center gap-2 text-red-500 hover:bg-red-50 transition-all"
+              >
+                <span class="material-symbols-outlined text-base"
+                  >delete_sweep</span
+                >
+                Clear All Pages
+              </button>
+
+              <!-- Proceed to Sign -->
+              <button
+                id="btn-proceed-sign"
+                class="w-full py-3 rounded-xl font-bold text-xs flex items-center justify-center gap-2 shadow-[0_4px_12px_rgba(0,91,191,.25)] text-on-primary bg-gradient-ink hover:opacity-90 transition-all active:scale-95"
+              >
+                <span class="material-symbols-outlined text-base">draw</span>
+                Proceed to Sign →
+              </button>
+
+              <!-- Start Over -->
+              <button
+                id="btn-organizer-reset"
+                class="w-full py-2 rounded-lg font-bold text-xs flex items-center justify-center gap-2 text-on-surface-variant hover:bg-surface-container-high transition-all"
+              >
+                <span class="material-symbols-outlined text-base"
+                  >restart_alt</span
+                >
+                Start Over
+              </button>
             </div>
+            <!-- /organizer-controls -->
 
-            <!-- Clear All Pages -->
-            <button id="btn-clear-organizer"
-              class="w-full py-2 rounded-lg font-bold text-xs flex items-center justify-center gap-2 text-red-500 hover:bg-red-50 transition-all">
-              <span class="material-symbols-outlined text-base">delete_sweep</span>
-              Clear All Pages
-            </button>
-
-            <!-- Proceed to Sign -->
-            <button id="btn-proceed-sign"
-              class="w-full py-3 rounded-xl font-bold text-xs flex items-center justify-center gap-2 shadow-[0_4px_12px_rgba(0,91,191,.25)] text-on-primary bg-gradient-ink hover:opacity-90 transition-all active:scale-95">
-              <span class="material-symbols-outlined text-base">draw</span>
-              Proceed to Sign →
-            </button>
-
-            <!-- Start Over -->
-            <button id="btn-organizer-reset"
-              class="w-full py-2 rounded-lg font-bold text-xs flex items-center justify-center gap-2 text-on-surface-variant hover:bg-surface-container-high transition-all">
-              <span class="material-symbols-outlined text-base">restart_alt</span>
-              Start Over
-            </button>
-          </div>
-          <!-- /organizer-controls -->
-
-          <!-- ── STAMP / SIGNING CONTROLS ────────────────────────
+            <!-- ── STAMP / SIGNING CONTROLS ────────────────────────
              Starts hidden via style="display:none".
              script.js showSigningScreen()   → display:'flex'
              script.js showOrganizerScreen() → display:'none'
         ─────────────────────────────────────────────────────── -->
-          <div id="stamp-controls" style="display: none" class="flex flex-col gap-y-3">
-            <div class="h-px bg-outline-variant/20"></div>
-            <h3 class="font-label text-[10px] tracking-widest uppercase font-bold text-on-surface-variant">
-              Stamps &amp; Signatures
-            </h3>
+            <div
+              id="stamp-controls"
+              style="display: none"
+              class="flex flex-col gap-y-3"
+            >
+              <div class="h-px bg-outline-variant/20"></div>
+              <h3
+                class="font-label text-[10px] tracking-widest uppercase font-bold text-on-surface-variant"
+              >
+                Stamps &amp; Signatures
+              </h3>
 
-            <!-- Ink Signature -->
-            <div id="btn-ink-sig"
-              class="sig-btn text-on-surface-variant rounded-xl p-3 flex items-center gap-3 cursor-pointer transition-all">
-              <div class="w-10 h-10 bg-surface-container-low rounded-lg flex items-center justify-center shrink-0">
-                <span class="material-symbols-outlined opacity-60">draw</span>
-              </div>
-              <div class="flex-1 min-w-0">
-                <p class="text-[11px] font-bold" data-stamp-label>
-                  Ink Signature
-                </p>
-                <p class="text-[9px] opacity-70">ഒപ്പ് ചേർക്കുക</p>
-              </div>
-            </div>
-
-            <!-- Designation Seal -->
-            <div id="btn-desig-seal"
-              class="sig-btn text-on-surface-variant rounded-xl p-3 flex items-center gap-3 cursor-pointer transition-all">
-              <div class="w-10 h-10 bg-surface-container-low rounded-lg flex items-center justify-center shrink-0">
-                <span class="material-symbols-outlined opacity-60">verified_user</span>
-              </div>
-              <div class="flex-1 min-w-0">
-                <p class="text-[11px] font-bold" data-stamp-label>
-                  Designation Seal
-                </p>
-                <p class="text-[9px] opacity-70">പദവി മുദ്ര</p>
-              </div>
-            </div>
-
-            <!-- Office Seal -->
-            <div id="btn-office-seal"
-              class="sig-btn text-on-surface-variant rounded-xl p-3 flex items-center gap-3 cursor-pointer transition-all">
-              <div class="w-10 h-10 bg-surface-container-low rounded-lg flex items-center justify-center shrink-0">
-                <span class="material-symbols-outlined opacity-60">business_center</span>
-              </div>
-              <div class="flex-1 min-w-0">
-                <p class="text-[11px] font-bold" data-stamp-label>
-                  Office Seal
-                </p>
-                <p class="text-[9px] opacity-70">ഓഫീസ് മുദ്ര</p>
-              </div>
-            </div>
-
-            <div class="h-px bg-outline-variant/20"></div>
-
-            <!-- Freehand Draw -->
-            <h3 class="font-label text-[10px] tracking-widest uppercase font-bold text-on-surface-variant">
-              Freehand Draw
-            </h3>
-
-            <button id="btn-toggle-draw"
-              class="w-full py-2.5 rounded-xl font-bold text-xs transition-all bg-surface-container-lowest text-on-surface-variant hover:bg-primary/5 hover:text-primary flex items-center justify-center gap-2 shadow-ambient-sm">
-              <span class="material-symbols-outlined text-base">edit</span>
-              <span id="draw-btn-label">Start Drawing</span>
-            </button>
-
-            <!-- Add Text — ghost click-to-place UX (script.js §7·5).
-               Clicking enters textPlacingMode: a purple hint banner
-               appears and a ghost IText follows the cursor; clicking
-               on the canvas places the real IText at the exact point. -->
-            <button id="btn-add-text"
-              class="w-full py-2.5 rounded-xl font-bold text-xs transition-all bg-surface-container-lowest text-on-surface-variant hover:bg-primary/5 hover:text-primary flex items-center justify-center gap-2 shadow-ambient-sm">
-              <span class="material-symbols-outlined text-base">text_fields</span>
-              Add Text
-            </button>
-
-            <!-- Draw toolbar (hidden until draw mode ON or text selected) -->
-            <div id="draw-toolbar" class="hidden flex-col gap-3">
-              <!-- Colour swatches -->
-              <div class="flex items-center justify-between">
-                <span class="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">
-                  Ink / Text Color
-                </span>
-                <div class="flex gap-2">
-                  <button class="color-btn active w-7 h-7 rounded-full border-2 border-white shadow-sm"
-                    style="background: #005bbf; --ring-color: #005bbf" data-color="#005bbf" title="Blue"></button>
-                  <button class="color-btn w-7 h-7 rounded-full border-2 border-white shadow-sm"
-                    style="background: #dc2626; --ring-color: #dc2626" data-color="#dc2626" title="Red"></button>
-                  <button class="color-btn w-7 h-7 rounded-full border-2 border-white shadow-sm"
-                    style="background: #16a34a; --ring-color: #16a34a" data-color="#16a34a" title="Green"></button>
-                  <button class="color-btn w-7 h-7 rounded-full border-2 border-white shadow-sm"
-                    style="background: #111827; --ring-color: #111827" data-color="#111827" title="Black"></button>
+              <!-- Ink Signature -->
+              <div
+                id="btn-ink-sig"
+                class="sig-btn text-on-surface-variant rounded-xl p-3 flex items-center gap-3 cursor-pointer transition-all"
+              >
+                <div
+                  class="w-10 h-10 bg-surface-container-low rounded-lg flex items-center justify-center shrink-0"
+                >
+                  <span class="material-symbols-outlined opacity-60">draw</span>
+                </div>
+                <div class="flex-1 min-w-0">
+                  <p class="text-[11px] font-bold" data-stamp-label>
+                    Ink Signature
+                  </p>
+                  <p class="text-[9px] opacity-70">ഒപ്പ് ചേർക്കുക</p>
                 </div>
               </div>
 
-              <!-- Brush size -->
-              <div class="flex items-center gap-2">
-                <span class="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider shrink-0">
-                  Size
-                </span>
-                <input id="brush-size" type="range" min="1" max="20" value="3"
-                  class="flex-1 h-1.5 cursor-pointer accent-primary" />
-                <span id="brush-size-label"
-                  class="text-[10px] font-bold text-on-surface-variant w-5 text-right font-headline">
-                  3
-                </span>
+              <!-- Designation Seal -->
+              <div
+                id="btn-desig-seal"
+                class="sig-btn text-on-surface-variant rounded-xl p-3 flex items-center gap-3 cursor-pointer transition-all"
+              >
+                <div
+                  class="w-10 h-10 bg-surface-container-low rounded-lg flex items-center justify-center shrink-0"
+                >
+                  <span class="material-symbols-outlined opacity-60"
+                    >verified_user</span
+                  >
+                </div>
+                <div class="flex-1 min-w-0">
+                  <p class="text-[11px] font-bold" data-stamp-label>
+                    Designation Seal
+                  </p>
+                  <p class="text-[9px] opacity-70">പദവി മുദ്ര</p>
+                </div>
               </div>
 
-              <!-- Clear strokes -->
-              <button id="btn-clear-draw"
-                class="w-full py-1.5 rounded-lg font-bold text-xs transition-all text-amber-700 bg-amber-50 hover:bg-amber-100 flex items-center justify-center gap-1.5">
-                <span class="material-symbols-outlined text-sm">ink_eraser</span>
-                Clear All Strokes
+              <!-- Office Seal -->
+              <div
+                id="btn-office-seal"
+                class="sig-btn text-on-surface-variant rounded-xl p-3 flex items-center gap-3 cursor-pointer transition-all"
+              >
+                <div
+                  class="w-10 h-10 bg-surface-container-low rounded-lg flex items-center justify-center shrink-0"
+                >
+                  <span class="material-symbols-outlined opacity-60"
+                    >business_center</span
+                  >
+                </div>
+                <div class="flex-1 min-w-0">
+                  <p class="text-[11px] font-bold" data-stamp-label>
+                    Office Seal
+                  </p>
+                  <p class="text-[9px] opacity-70">ഓഫീസ് മുദ്ര</p>
+                </div>
+              </div>
+
+              <div class="h-px bg-outline-variant/20"></div>
+
+              <!-- Freehand Draw -->
+              <h3
+                class="font-label text-[10px] tracking-widest uppercase font-bold text-on-surface-variant"
+              >
+                Freehand Draw
+              </h3>
+
+              <button
+                id="btn-toggle-draw"
+                class="w-full py-2.5 rounded-xl font-bold text-xs transition-all bg-surface-container-lowest text-on-surface-variant hover:bg-primary/5 hover:text-primary flex items-center justify-center gap-2 shadow-ambient-sm"
+              >
+                <span class="material-symbols-outlined text-base">edit</span>
+                <span id="draw-btn-label">Start Drawing</span>
               </button>
-            </div>
-            <!-- /draw-toolbar -->
 
-            <!-- Delete selected -->
-            <button id="btn-delete-sel"
-              class="w-full py-2 rounded-lg font-bold text-xs flex items-center justify-center gap-2 text-red-500 hover:bg-red-50 transition-all hidden">
-              <span class="material-symbols-outlined text-base">delete</span>
-              Remove Selected
-              <span class="text-[9px] opacity-60">(or Del key)</span>
-            </button>
-
-            <!-- Back to Organizer -->
-            <button id="btn-back-organizer"
-              class="w-full py-2 rounded-lg font-bold text-xs flex items-center justify-center gap-2 text-on-surface-variant hover:bg-surface-container-high transition-all">
-              <span class="material-symbols-outlined text-base">arrow_back</span>
-              Back to Organizer
-            </button>
-
-            <!-- Download Signed PDF -->
-            <div class="mt-auto pt-2">
-              <button id="btn-download"
-                class="w-full py-3 rounded-xl font-bold text-xs flex items-center justify-center gap-2 text-on-primary bg-gradient-ink shadow-[0_4px_12px_rgba(0,91,191,.25)] hover:opacity-90 transition-all active:scale-95">
-                <span class="material-symbols-outlined text-base">picture_as_pdf</span>
-                Download Signed PDF
+              <!-- Add Text — ghost click-to-place UX (script.js §7·5).
+               Clicking enters textPlacingMode: a purple hint banner
+               appears and a ghost IText follows the cursor; clicking
+               on the canvas places the real IText at the exact point. -->
+              <button
+                id="btn-add-text"
+                class="w-full py-2.5 rounded-xl font-bold text-xs transition-all bg-surface-container-lowest text-on-surface-variant hover:bg-primary/5 hover:text-primary flex items-center justify-center gap-2 shadow-ambient-sm"
+              >
+                <span class="material-symbols-outlined text-base"
+                  >text_fields</span
+                >
+                Add Text
               </button>
-            </div>
-          </div>
-          <!-- /stamp-controls -->
-        </aside>
-        <!-- /sidebar -->
 
-        <!-- ── MAIN CANVAS AREA ────────────────────────────────────────
+              <!-- Draw toolbar (hidden until draw mode ON or text selected) -->
+              <div id="draw-toolbar" class="hidden flex-col gap-3">
+                <!-- Colour swatches -->
+                <div class="flex items-center justify-between">
+                  <span
+                    class="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider"
+                  >
+                    Ink / Text Color
+                  </span>
+                  <div class="flex gap-2">
+                    <button
+                      class="color-btn active w-7 h-7 rounded-full border-2 border-white shadow-sm"
+                      style="background: #005bbf; --ring-color: #005bbf"
+                      data-color="#005bbf"
+                      title="Blue"
+                    ></button>
+                    <button
+                      class="color-btn w-7 h-7 rounded-full border-2 border-white shadow-sm"
+                      style="background: #dc2626; --ring-color: #dc2626"
+                      data-color="#dc2626"
+                      title="Red"
+                    ></button>
+                    <button
+                      class="color-btn w-7 h-7 rounded-full border-2 border-white shadow-sm"
+                      style="background: #16a34a; --ring-color: #16a34a"
+                      data-color="#16a34a"
+                      title="Green"
+                    ></button>
+                    <button
+                      class="color-btn w-7 h-7 rounded-full border-2 border-white shadow-sm"
+                      style="background: #111827; --ring-color: #111827"
+                      data-color="#111827"
+                      title="Black"
+                    ></button>
+                  </div>
+                </div>
+
+                <!-- Brush size -->
+                <div class="flex items-center gap-2">
+                  <span
+                    class="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider shrink-0"
+                  >
+                    Size
+                  </span>
+                  <input
+                    id="brush-size"
+                    type="range"
+                    min="1"
+                    max="20"
+                    value="3"
+                    class="flex-1 h-1.5 cursor-pointer accent-primary"
+                  />
+                  <span
+                    id="brush-size-label"
+                    class="text-[10px] font-bold text-on-surface-variant w-5 text-right font-headline"
+                  >
+                    3
+                  </span>
+                </div>
+
+                <!-- Clear strokes -->
+                <button
+                  id="btn-clear-draw"
+                  class="w-full py-1.5 rounded-lg font-bold text-xs transition-all text-amber-700 bg-amber-50 hover:bg-amber-100 flex items-center justify-center gap-1.5"
+                >
+                  <span class="material-symbols-outlined text-sm"
+                    >ink_eraser</span
+                  >
+                  Clear All Strokes
+                </button>
+              </div>
+              <!-- /draw-toolbar -->
+
+              <!-- Delete selected -->
+              <button
+                id="btn-delete-sel"
+                class="w-full py-2 rounded-lg font-bold text-xs flex items-center justify-center gap-2 text-red-500 hover:bg-red-50 transition-all hidden"
+              >
+                <span class="material-symbols-outlined text-base">delete</span>
+                Remove Selected
+                <span class="text-[9px] opacity-60">(or Del key)</span>
+              </button>
+
+              <!-- Back to Organizer -->
+              <button
+                id="btn-back-organizer"
+                class="w-full py-2 rounded-lg font-bold text-xs flex items-center justify-center gap-2 text-on-surface-variant hover:bg-surface-container-high transition-all"
+              >
+                <span class="material-symbols-outlined text-base"
+                  >arrow_back</span
+                >
+                Back to Organizer
+              </button>
+
+              <!-- Download Signed PDF -->
+              <div class="mt-auto pt-2">
+                <button
+                  id="btn-download"
+                  class="w-full py-3 rounded-xl font-bold text-xs flex items-center justify-center gap-2 text-on-primary bg-gradient-ink shadow-[0_4px_12px_rgba(0,91,191,.25)] hover:opacity-90 transition-all active:scale-95"
+                >
+                  <span class="material-symbols-outlined text-base"
+                    >picture_as_pdf</span
+                  >
+                  Download Signed PDF
+                </button>
+              </div>
+            </div>
+            <!-- /stamp-controls -->
+          </aside>
+          <!-- /sidebar -->
+
+          <!-- ── MAIN CANVAS AREA ────────────────────────────────────────
            flex-1 expands to fill remaining width beside the sidebar.
            min-h-0: prevents the flex item from growing past the bounded
              parent height (default min-height:auto would defeat flex
@@ -1054,115 +1205,164 @@
            overflow-auto (both axes) allows wide/tall PDFs to scroll.
            On mobile the column stacks vertically (CSS media query).
       ──────────────────────────────────────────────────────────────── -->
-        <main
-          class="flex-1 min-h-0 min-w-0 bg-surface-container-high overflow-auto flex flex-col items-start justify-start gap-4 p-4 md:p-8 signature-canvas-bg">
-          <!-- ─── Placeholder (shown until first upload) ─── -->
-          <div id="pdf-placeholder" class="self-center">
-            <div class="mb-6 relative">
-              <div
-                class="w-24 h-32 bg-surface-container rounded-xl shadow-[0_8px_24px_rgba(0,91,191,0.08)] flex items-center justify-center border border-outline-variant/15">
-                <span class="material-symbols-outlined text-5xl text-outline-variant/60">description</span>
+          <main
+            class="flex-1 min-h-0 min-w-0 bg-surface-container-high overflow-auto flex flex-col items-start justify-start gap-4 p-4 md:p-8 signature-canvas-bg"
+          >
+            <!-- ─── Placeholder (shown until first upload) ─── -->
+            <div id="pdf-placeholder" class="self-center">
+              <div class="mb-6 relative">
+                <div
+                  class="w-24 h-32 bg-surface-container rounded-xl shadow-[0_8px_24px_rgba(0,91,191,0.08)] flex items-center justify-center border border-outline-variant/15"
+                >
+                  <span
+                    class="material-symbols-outlined text-5xl text-outline-variant/60"
+                    >description</span
+                  >
+                </div>
+                <div
+                  class="absolute -bottom-3 -right-3 w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-ambient-sm"
+                >
+                  <span
+                    class="material-symbols-outlined text-white text-lg"
+                    style="font-variation-settings: &quot;FILL&quot; 1"
+                    >add</span
+                  >
+                </div>
               </div>
-              <div
-                class="absolute -bottom-3 -right-3 w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-ambient-sm">
-                <span class="material-symbols-outlined text-white text-lg"
-                  style="font-variation-settings: &quot;FILL&quot; 1">add</span>
+              <p
+                class="font-headline font-bold text-base text-on-surface/70 mt-2"
+              >
+                PDF കാൻവാസ്
+              </p>
+              <p
+                class="text-xs text-on-surface-variant/60 mt-1 text-center max-w-[200px] leading-relaxed"
+              >
+                Upload one or more PDFs to organise, reorder and sign
+              </p>
+              <div class="mt-6 flex items-center gap-3">
+                <div
+                  class="stat-chip bg-surface-container text-on-surface-variant"
+                >
+                  <span class="material-symbols-outlined text-sm">merge</span>
+                  Multi-PDF Merge
+                </div>
+                <div
+                  class="stat-chip bg-surface-container text-on-surface-variant"
+                >
+                  <span class="material-symbols-outlined text-sm">draw</span>
+                  Ink Stamp
+                </div>
               </div>
             </div>
-            <p class="font-headline font-bold text-base text-on-surface/70 mt-2">
-              PDF കാൻവാസ്
-            </p>
-            <p class="text-xs text-on-surface-variant/60 mt-1 text-center max-w-[200px] leading-relaxed">
-              Upload one or more PDFs to organise, reorder and sign
-            </p>
-            <div class="mt-6 flex items-center gap-3">
-              <div class="stat-chip bg-surface-container text-on-surface-variant">
-                <span class="material-symbols-outlined text-sm">merge</span>
-                Multi-PDF Merge
-              </div>
-              <div class="stat-chip bg-surface-container text-on-surface-variant">
-                <span class="material-symbols-outlined text-sm">draw</span>
-                Ink Stamp
-              </div>
-            </div>
-          </div>
 
-          <!-- ─── Step 1: DOCUMENT ORGANIZER SCREEN ───────────────
+            <!-- ─── Step 1: DOCUMENT ORGANIZER SCREEN ───────────────
              Starts hidden (CSS: #organizer-screen { display:none })
              script.js showOrganizerScreen() → style.display='block'
              script.js showSigningScreen()   → style.display='none'
         ─────────────────────────────────────────────────────────── -->
-          <div id="organizer-screen"
-            class="w-full self-center max-w-5xl bg-surface-container-lowest rounded-2xl shadow-ambient p-6">
-            <div class="flex items-center justify-between mb-5">
-              <div>
-                <h2 class="font-headline font-bold text-lg text-on-surface">
-                  Document Organizer
-                </h2>
-                <!-- MOBILE REORDER FIX: subtitle updated to mention ← → buttons -->
-                <p class="text-xs text-on-surface-variant mt-0.5">
-                  Tap ← → to reorder · drag on desktop · click × to remove ·
-                  upload more PDFs above
-                </p>
+            <div
+              id="organizer-screen"
+              class="w-full self-center max-w-5xl bg-surface-container-lowest rounded-2xl shadow-ambient p-6"
+            >
+              <div class="flex items-center justify-between mb-5">
+                <div>
+                  <h2 class="font-headline font-bold text-lg text-on-surface">
+                    Document Organizer
+                  </h2>
+                  <!-- MOBILE REORDER FIX: subtitle updated to mention ← → buttons -->
+                  <p class="text-xs text-on-surface-variant mt-0.5">
+                    Tap ← → to reorder · drag on desktop · click × to remove ·
+                    upload more PDFs above
+                  </p>
+                </div>
+                <!-- Inline spinner while thumbnails render -->
+                <div
+                  id="org-spinner"
+                  class="hidden flex items-center gap-2 text-primary text-xs font-bold"
+                >
+                  <svg
+                    class="animate-spin h-4 w-4"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                  >
+                    <circle
+                      class="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      stroke-width="4"
+                    />
+                    <path
+                      class="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8v8z"
+                    />
+                  </svg>
+                  Rendering pages…
+                </div>
               </div>
-              <!-- Inline spinner while thumbnails render -->
-              <div id="org-spinner" class="hidden flex items-center gap-2 text-primary text-xs font-bold">
-                <svg class="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
-                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
-                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
-                </svg>
-                Rendering pages…
+
+              <!-- Thumbnail drag-and-drop grid — populated by script.js -->
+              <div id="thumb-grid"></div>
+
+              <!-- Empty-state message — shown by script.js when all pages removed -->
+              <div
+                id="org-empty"
+                class="hidden py-16 text-center text-on-surface-variant/50"
+              >
+                <span class="material-symbols-outlined text-5xl mb-3"
+                  >image_not_supported</span
+                >
+                <p class="text-sm font-bold">All pages removed</p>
+                <p class="text-xs mt-1">Upload a PDF to continue</p>
               </div>
             </div>
 
-            <!-- Thumbnail drag-and-drop grid — populated by script.js -->
-            <div id="thumb-grid"></div>
-
-            <!-- Empty-state message — shown by script.js when all pages removed -->
-            <div id="org-empty" class="hidden py-16 text-center text-on-surface-variant/50">
-              <span class="material-symbols-outlined text-5xl mb-3">image_not_supported</span>
-              <p class="text-sm font-bold">All pages removed</p>
-              <p class="text-xs mt-1">Upload a PDF to continue</p>
-            </div>
-          </div>
-
-          <!-- ─── Step 2: SIGNING CANVAS ────────────────────────────
+            <!-- ─── Step 2: SIGNING CANVAS ────────────────────────────
              Starts hidden via inline style="display:none".
              script.js showSigningScreen()   → style.display='inline-block'
              script.js showOrganizerScreen() → style.display='none'
              The pagination bar created by script.js is inserted
              immediately after this wrapper (pdfWrapper.nextSibling).
         ─────────────────────────────────────────────────────────── -->
-          <div id="pdf-wrapper" style="display: none">
-            <canvas id="pdf-render-canvas"></canvas>
-            <canvas id="fabric-canvas-el"></canvas>
-            <div id="page-info"></div>
-          </div>
-          <!-- Stamp hint, text hint, and pagination bar injected here at runtime by script.js -->
-        </main>
-      </div>
-      <!-- /tab-dashboard -->
+            <div id="pdf-wrapper" style="display: none">
+              <canvas id="pdf-render-canvas"></canvas>
+              <canvas id="fabric-canvas-el"></canvas>
+              <div id="page-info"></div>
+            </div>
+            <!-- Stamp hint, text hint, and pagination bar injected here at runtime by script.js -->
+          </main>
+        </div>
+        <!-- /tab-dashboard -->
 
-      <!-- ══════════════════════════════════════════════════════
+        <!-- ══════════════════════════════════════════════════════
          TAB 2 — ARCHIVE  (Live history from localStorage)
     ══════════════════════════════════════════════════════════ -->
-      <div id="tab-archive" class="tab-panel w-full bg-surface">
-        <!-- Archive sticky header (responsive) -->
-        <div
-          class="sticky top-0 z-20 glass-toolbar px-4 sm:px-6 md:px-10 py-3 md:py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 shadow-[0_1px_0_rgba(193,198,214,0.3)]">
-          <div>
-            <h2 class="font-headline font-extrabold text-lg md:text-xl text-on-surface">
-              Document Archive
-            </h2>
-            <p class="text-xs text-on-surface-variant font-medium mt-0.5">
-              രേഖകളുടെ ശേഖരം
-            </p>
-          </div>
-          <div class="flex items-center gap-3 w-full sm:w-auto">
-            <!-- Search box — placeholder text starts from the left with no icon -->
-            <div class="flex-1 sm:flex-none">
-              <input id="archive-search-input" class="archive-search w-full sm:w-auto" placeholder="Search documents…"
-                type="text" oninput="
+        <div id="tab-archive" class="tab-panel w-full bg-surface">
+          <!-- Archive sticky header (responsive) -->
+          <div
+            class="sticky top-0 z-20 glass-toolbar px-4 sm:px-6 md:px-10 py-3 md:py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 shadow-[0_1px_0_rgba(193,198,214,0.3)]"
+          >
+            <div>
+              <h2
+                class="font-headline font-extrabold text-lg md:text-xl text-on-surface"
+              >
+                Document Archive
+              </h2>
+              <p class="text-xs text-on-surface-variant font-medium mt-0.5">
+                രേഖകളുടെ ശേഖരം
+              </p>
+            </div>
+            <div class="flex items-center gap-3 w-full sm:w-auto">
+              <!-- Search box — placeholder text starts from the left with no icon -->
+              <div class="flex-1 sm:flex-none">
+                <input
+                  id="archive-search-input"
+                  class="archive-search w-full sm:w-auto"
+                  placeholder="Search documents…"
+                  type="text"
+                  oninput="
                     const q = this.value.trim().toLowerCase();
                     document
                       .querySelectorAll(
@@ -1173,216 +1373,290 @@
                           ? ''
                           : 'none';
                       });
-                  " />
+                  "
+                />
+              </div>
+              <!-- View toggles -->
+              <div class="flex gap-2 shrink-0">
+                <button
+                  class="p-2 bg-surface-container-low rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-colors"
+                >
+                  <span class="material-symbols-outlined text-lg"
+                    >grid_view</span
+                  >
+                </button>
+                <button
+                  class="p-2 bg-primary-container text-white rounded-lg shadow-ambient-sm"
+                >
+                  <span class="material-symbols-outlined text-lg">list</span>
+                </button>
+              </div>
             </div>
-            <!-- View toggles -->
-            <div class="flex gap-2 shrink-0">
+          </div>
+
+          <!-- Archive content -->
+          <div
+            class="px-4 sm:px-6 md:px-10 py-6 md:py-8 max-w-5xl mx-auto w-full"
+          >
+            <!-- Filter chips -->
+            <div
+              class="flex flex-wrap items-center gap-2 md:gap-3 mb-6 md:mb-8"
+            >
+              <button class="stat-chip bg-primary text-white shadow-ambient-sm">
+                All Documents
+              </button>
               <button
-                class="p-2 bg-surface-container-low rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-colors">
-                <span class="material-symbols-outlined text-lg">grid_view</span>
-              </button>
-              <button class="p-2 bg-primary-container text-white rounded-lg shadow-ambient-sm">
-                <span class="material-symbols-outlined text-lg">list</span>
+                class="stat-chip bg-surface-container text-on-surface-variant hover:bg-surface-container-high transition-colors cursor-pointer"
+              >
+                <span class="w-2 h-2 bg-green-500 rounded-full"></span>
+                Signed
               </button>
             </div>
-          </div>
-        </div>
 
-        <!-- Archive content -->
-        <div class="px-4 sm:px-6 md:px-10 py-6 md:py-8 max-w-5xl mx-auto w-full">
-          <!-- Filter chips -->
-          <div class="flex flex-wrap items-center gap-2 md:gap-3 mb-6 md:mb-8">
-            <button class="stat-chip bg-primary text-white shadow-ambient-sm">
-              All Documents
-            </button>
-            <button
-              class="stat-chip bg-surface-container text-on-surface-variant hover:bg-surface-container-high transition-colors cursor-pointer">
-              <span class="w-2 h-2 bg-green-500 rounded-full"></span>
-              Signed
-            </button>
-          </div>
-
-          <!-- ── Dynamic document list ──────────────────────────────────────
+            <!-- ── Dynamic document list ──────────────────────────────────────
              id="archive-doc-list" is cleared and repopulated by
              script.js renderArchiveTab() each time this tab is opened.
              No static placeholder rows — real data only.
              The outer div is a plain flex-column; script.js injects
              .doc-row elements with data-filename for the inline search.
         ─────────────────────────────────────────────────────────────── -->
-          <div id="archive-doc-list" class="flex flex-col gap-4">
-            <!-- Populated by script.js — empty on first load -->
+            <div id="archive-doc-list" class="flex flex-col gap-4">
+              <!-- Populated by script.js — empty on first load -->
+            </div>
+
+            <!-- Footer -->
+            <footer
+              class="mt-10 md:mt-12 flex flex-col sm:flex-row justify-between items-center gap-4 sm:gap-0 text-[11px] text-on-surface-variant/50 font-bold uppercase tracking-widest border-t border-outline-variant/15 pt-6"
+            >
+              <div class="flex gap-6 md:gap-8">
+                <span>Active Sessions: 01</span>
+                <span>Last Login: Today, IST</span>
+              </div>
+              <div class="flex gap-5">
+                <a class="hover:text-primary transition-colors cursor-pointer"
+                  >Privacy Policy</a
+                >
+                <a class="hover:text-primary transition-colors cursor-pointer"
+                  >Terms of Use</a
+                >
+              </div>
+            </footer>
           </div>
-
-          <!-- Footer -->
-          <footer
-            class="mt-10 md:mt-12 flex flex-col sm:flex-row justify-between items-center gap-4 sm:gap-0 text-[11px] text-on-surface-variant/50 font-bold uppercase tracking-widest border-t border-outline-variant/15 pt-6">
-            <div class="flex gap-6 md:gap-8">
-              <span>Active Sessions: 01</span>
-              <span>Last Login: Today, IST</span>
-            </div>
-            <div class="flex gap-5">
-              <a class="hover:text-primary transition-colors cursor-pointer">Privacy Policy</a>
-              <a class="hover:text-primary transition-colors cursor-pointer">Terms of Use</a>
-            </div>
-          </footer>
+          <!-- /archive content -->
         </div>
-        <!-- /archive content -->
+        <!-- /tab-archive -->
       </div>
-      <!-- /tab-archive -->
+      <!-- /tab panels container -->
     </div>
-    <!-- /tab panels container -->
-  </div>
-  <!-- /app-dashboard -->
+    <!-- /app-dashboard -->
 
-  <!-- ════════════════════════════════════════════════════════════
+    <!-- ════════════════════════════════════════════════════════════
      PIN SCREEN
      #pin-input white background + clear border are
      enforced via `#pin-input { ... !important }` in <style>
      above — no inline style attributes needed here.
 ════════════════════════════════════════════════════════════ -->
-  <div id="pin-screen"
-    class="fixed inset-0 z-50 flex items-center justify-center bg-on-background/10 backdrop-blur-md transition-opacity duration-500">
-    <!-- Ambient background blobs -->
-    <div class="fixed inset-0 -z-10 pointer-events-none overflow-hidden">
-      <div
-        class="absolute top-0 right-0 w-[700px] h-[700px] bg-primary/5 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/3">
-      </div>
-      <div
-        class="absolute bottom-0 left-0 w-[500px] h-[500px] bg-tertiary-fixed/10 rounded-full blur-[100px] translate-y-1/3 -translate-x-1/4">
-      </div>
-    </div>
-
-    <!-- PIN Card -->
     <div
-      class="pin-card glass-panel max-w-md w-full mx-4 p-10 rounded-[32px] flex flex-col items-center text-center shadow-[0_24px_60px_rgba(25,28,30,0.10)] border border-white/50">
-      <!-- Logo + Title -->
-      <div class="mb-8 flex flex-col items-center gap-4">
-        <div class="mb-1 relative">
-          <img src="logo192.png" alt="Ink Sign Studio" class="w-16 h-16 rounded-2xl object-contain shadow-ambient"
-            onerror="
+      id="pin-screen"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-on-background/10 backdrop-blur-md transition-opacity duration-500"
+    >
+      <!-- Ambient background blobs -->
+      <div class="fixed inset-0 -z-10 pointer-events-none overflow-hidden">
+        <div
+          class="absolute top-0 right-0 w-[700px] h-[700px] bg-primary/5 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/3"
+        ></div>
+        <div
+          class="absolute bottom-0 left-0 w-[500px] h-[500px] bg-tertiary-fixed/10 rounded-full blur-[100px] translate-y-1/3 -translate-x-1/4"
+        ></div>
+      </div>
+
+      <!-- PIN Card -->
+      <div
+        class="pin-card glass-panel max-w-md w-full mx-4 p-10 rounded-[32px] flex flex-col items-center text-center shadow-[0_24px_60px_rgba(25,28,30,0.10)] border border-white/50"
+      >
+        <!-- Logo + Title -->
+        <div class="mb-8 flex flex-col items-center gap-4">
+          <div class="mb-1 relative">
+            <img
+              src="logo192.png"
+              alt="Ink Sign Studio"
+              class="w-16 h-16 rounded-2xl object-contain shadow-ambient"
+              onerror="
                 this.style.display = 'none';
                 this.nextElementSibling.style.removeProperty('display');
-              " />
-          <!-- Fallback icon shown only if logo image fails to load -->
-          <div class="w-16 h-16 rounded-2xl bg-tertiary-fixed flex items-center justify-center shadow-ambient-sm"
-            style="display: none">
-            <span class="material-symbols-outlined text-on-tertiary-fixed text-3xl"
-              style="font-variation-settings: &quot;FILL&quot; 1">lock</span>
+              "
+            />
+            <!-- Fallback icon shown only if logo image fails to load -->
+            <div
+              class="w-16 h-16 rounded-2xl bg-tertiary-fixed flex items-center justify-center shadow-ambient-sm"
+              style="display: none"
+            >
+              <span
+                class="material-symbols-outlined text-on-tertiary-fixed text-3xl"
+                style="font-variation-settings: &quot;FILL&quot; 1"
+                >lock</span
+              >
+            </div>
+            <!-- Subtle glow ring around logo -->
+            <div
+              class="absolute -inset-1.5 rounded-[20px] border-2 border-primary/15 pointer-events-none"
+            ></div>
           </div>
-          <!-- Subtle glow ring around logo -->
-          <div class="absolute -inset-1.5 rounded-[20px] border-2 border-primary/15 pointer-events-none"></div>
+
+          <div class="space-y-1">
+            <h1
+              id="pin-title"
+              class="font-headline font-extrabold text-2xl tracking-tight text-on-surface"
+            >
+              Enter Your PIN
+            </h1>
+            <p
+              id="pin-subtitle"
+              class="text-on-surface-variant/80 text-sm font-medium"
+            >
+              നിങ്ങളുടെ പിൻ നൽകുക
+            </p>
+          </div>
         </div>
 
-        <div class="space-y-1">
-          <h1 id="pin-title" class="font-headline font-extrabold text-2xl tracking-tight text-on-surface">
-            Enter Your PIN
-          </h1>
-          <p id="pin-subtitle" class="text-on-surface-variant/80 text-sm font-medium">
-            നിങ്ങളുടെ പിൻ നൽകുക
-          </p>
-        </div>
-      </div>
+        <!-- PIN dots + input -->
+        <div class="w-full space-y-8">
+          <!-- Indicator dots — updated live by script.js on 'input' event -->
+          <div class="flex justify-center gap-6" id="dot-container">
+            <div
+              class="pin-dot bg-surface-container-highest border border-outline-variant/30"
+            ></div>
+            <div
+              class="pin-dot bg-surface-container-highest border border-outline-variant/30"
+            ></div>
+            <div
+              class="pin-dot bg-surface-container-highest border border-outline-variant/30"
+            ></div>
+            <div
+              class="pin-dot bg-surface-container-highest border border-outline-variant/30"
+            ></div>
+          </div>
 
-      <!-- PIN dots + input -->
-      <div class="w-full space-y-8">
-        <!-- Indicator dots — updated live by script.js on 'input' event -->
-        <div class="flex justify-center gap-6" id="dot-container">
-          <div class="pin-dot bg-surface-container-highest border border-outline-variant/30"></div>
-          <div class="pin-dot bg-surface-container-highest border border-outline-variant/30"></div>
-          <div class="pin-dot bg-surface-container-highest border border-outline-variant/30"></div>
-          <div class="pin-dot bg-surface-container-highest border border-outline-variant/30"></div>
-        </div>
+          <!-- PIN input — white background + visible border via #pin-input CSS rule above -->
+          <div class="relative">
+            <input
+              id="pin-input"
+              class="w-full text-center rounded-2xl py-5 text-4xl font-headline tracking-[1.5em] text-primary font-bold transition-all"
+              maxlength="4"
+              type="password"
+              placeholder="· · · ·"
+              inputmode="numeric"
+              autocomplete="off"
+            />
+            <p
+              class="mt-3 text-[10px] uppercase tracking-widest text-outline font-bold"
+            >
+              Secure Session Active
+            </p>
+          </div>
 
-        <!-- PIN input — white background + visible border via #pin-input CSS rule above -->
-        <div class="relative">
-          <input id="pin-input"
-            class="w-full text-center rounded-2xl py-5 text-4xl font-headline tracking-[1.5em] text-primary font-bold transition-all"
-            maxlength="4" type="password" placeholder="· · · ·" inputmode="numeric" autocomplete="off" />
-          <p class="mt-3 text-[10px] uppercase tracking-widest text-outline font-bold">
-            Secure Session Active
-          </p>
-        </div>
-
-        <!-- Verify button + Forgot PIN / Reset App -->
-        <div class="space-y-4 pt-1">
-          <button id="verify-btn"
-            class="bg-gradient-ink w-full py-4 rounded-2xl text-on-primary font-headline font-bold text-lg shadow-lg shadow-primary/25 hover:opacity-95 active:scale-[0.98] transition-all flex flex-col items-center justify-center group">
-            <span id="btn-text">Verify PIN</span>
-            <span class="text-[10px] font-medium opacity-75 group-hover:opacity-100 transition-opacity">
-              പിൻ പരിശോധിക്കുക
-            </span>
-          </button>
-
-          <!-- Forgot PIN / Reset App -->
-          <div class="flex flex-col items-center gap-1 pt-2">
-            <button id="btn-forgot-pin"
-              class="text-primary font-label font-semibold text-sm hover:underline decoration-2 underline-offset-4 transition-all">
-              Forgot PIN / Reset App
+          <!-- Verify button + Forgot PIN / Reset App -->
+          <div class="space-y-4 pt-1">
+            <button
+              id="verify-btn"
+              class="bg-gradient-ink w-full py-4 rounded-2xl text-on-primary font-headline font-bold text-lg shadow-lg shadow-primary/25 hover:opacity-95 active:scale-[0.98] transition-all flex flex-col items-center justify-center group"
+            >
+              <span id="btn-text">Verify PIN</span>
+              <span
+                class="text-[10px] font-medium opacity-75 group-hover:opacity-100 transition-opacity"
+              >
+                പിൻ പരിശോധിക്കുക
+              </span>
             </button>
-            <span class="text-[10px] text-on-surface-variant/60 font-medium">
-              പിൻ മറന്നോ? / ആപ്പ് റീസെറ്റ്
-            </span>
+
+            <!-- Forgot PIN / Reset App -->
+            <div class="flex flex-col items-center gap-1 pt-2">
+              <button
+                id="btn-forgot-pin"
+                class="text-primary font-label font-semibold text-sm hover:underline decoration-2 underline-offset-4 transition-all"
+              >
+                Forgot PIN / Reset App
+              </button>
+              <span class="text-[10px] text-on-surface-variant/60 font-medium">
+                പിൻ മറന്നോ? / ആപ്പ് റീസെറ്റ്
+              </span>
+            </div>
           </div>
+        </div>
+
+        <!-- Security Identity Chip -->
+        <div
+          class="mt-10 flex items-center gap-2 bg-surface-container-high/60 px-4 py-2 rounded-full"
+        >
+          <span
+            class="material-symbols-outlined text-sm text-on-surface-variant"
+            style="font-variation-settings: &quot;FILL&quot; 1"
+            >shield</span
+          >
+          <span
+            class="text-[11px] font-bold text-on-surface-variant/70 uppercase tracking-widest font-label"
+          >
+            Ink Sign Studio Security
+          </span>
         </div>
       </div>
 
-      <!-- Security Identity Chip -->
-      <div class="mt-10 flex items-center gap-2 bg-surface-container-high/60 px-4 py-2 rounded-full">
-        <span class="material-symbols-outlined text-sm text-on-surface-variant"
-          style="font-variation-settings: &quot;FILL&quot; 1">shield</span>
-        <span class="text-[11px] font-bold text-on-surface-variant/70 uppercase tracking-widest font-label">
-          Ink Sign Studio Security
-        </span>
+      <!-- Decorative ENCRYPTED watermark -->
+      <div
+        class="absolute bottom-10 left-1/2 -translate-x-1/2 text-center pointer-events-none opacity-[0.035]"
+      >
+        <p
+          class="font-headline font-extrabold text-5xl text-on-background uppercase tracking-[2em] translate-x-[1em]"
+        >
+          ENCRYPTED
+        </p>
       </div>
     </div>
+    <!-- /pin-screen -->
 
-    <!-- Decorative ENCRYPTED watermark -->
-    <div class="absolute bottom-10 left-1/2 -translate-x-1/2 text-center pointer-events-none opacity-[0.035]">
-      <p class="font-headline font-extrabold text-5xl text-on-background uppercase tracking-[2em] translate-x-[1em]">
-        ENCRYPTED
-      </p>
+    <!-- Hidden multi-file PDF picker — script.js binds to this via #pdf-file-input -->
+    <input
+      id="pdf-file-input"
+      type="file"
+      accept="application/pdf"
+      multiple
+      style="display: none"
+    />
+
+    <!-- Global loading overlay — script.js toggles the .active class -->
+    <div id="loading-overlay" role="status" aria-live="polite">
+      <div class="lo-spinner"></div>
+      <p id="loading-text" class="lo-text">Please wait…</p>
     </div>
-  </div>
-  <!-- /pin-screen -->
 
-  <!-- Hidden multi-file PDF picker — script.js binds to this via #pdf-file-input -->
-  <input id="pdf-file-input" type="file" accept="application/pdf" multiple style="display: none" />
-
-  <!-- Global loading overlay — script.js toggles the .active class -->
-  <div id="loading-overlay" role="status" aria-live="polite">
-    <div class="lo-spinner"></div>
-    <p id="loading-text" class="lo-text">Please wait…</p>
-  </div>
-
-  <!-- ════════════════════════════════════════════════════════════
+    <!-- ════════════════════════════════════════════════════════════
      SPA TAB SWITCHING
      Runs immediately (not deferred) so nav tabs respond before
      script.js DOMContentLoaded fires. script.js re-runs
      switchTab('dashboard') on load, which is harmless.
 ════════════════════════════════════════════════════════════ -->
-  <script>
-    (function () {
-      function switchTab(targetName) {
-        document.querySelectorAll(".nav-tab").forEach(function (t) {
-          t.classList.toggle("active", t.dataset.tab === targetName);
+    <script>
+      (function () {
+        function switchTab(targetName) {
+          document.querySelectorAll(".nav-tab").forEach(function (t) {
+            t.classList.toggle("active", t.dataset.tab === targetName);
+          });
+          document.querySelectorAll(".tab-panel").forEach(function (p) {
+            p.classList.toggle("active", p.id === "tab-" + targetName);
+          });
+        }
+
+        document.querySelectorAll(".nav-tab").forEach(function (tab) {
+          tab.addEventListener("click", function () {
+            switchTab(tab.dataset.tab);
+          });
         });
-        document.querySelectorAll(".tab-panel").forEach(function (p) {
-          p.classList.toggle("active", p.id === "tab-" + targetName);
-        });
-      }
 
-      document.querySelectorAll(".nav-tab").forEach(function (tab) {
-        tab.addEventListener("click", function () {
-          switchTab(tab.dataset.tab);
-        });
-      });
+        // Default: Dashboard visible on page load
+        switchTab("dashboard");
+      })();
+    </script>
 
-      // Default: Dashboard visible on page load
-      switchTab("dashboard");
-    })();
-  </script>
-
-  <script src="script.js"></script>
-</body>
-
+    <script src="script.js"></script>
+  </body>
 </html>
