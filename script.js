@@ -804,6 +804,12 @@ document.addEventListener('DOMContentLoaded', () => {
      allowTouchScrolling = true  lets the browser handle vertical pan
      gestures on mobile when the user is not actively drawing/stamping,
      so the page remains scrollable by touch on the canvas area.
+
+     selection = window.innerWidth > 767  disables the background drag-box
+     on mobile (≤767 px). Fabric's group-selection gesture hijacks touch
+     events and overrides allowTouchScrolling, blocking native scroll.
+     Disabling it lets touch-pan pass through to the CSS overflow container.
+     Individual objects remain tappable and selectable on all screen sizes.
   ════════════════════════════════════════════════════════════════════ */
   function initFabricCanvas(width, height) {
     if (fabricCanvas) return;   // guard: created once only
@@ -815,7 +821,7 @@ document.addEventListener('DOMContentLoaded', () => {
     fabricCanvas = new fabric.Canvas('fabric-canvas-el', {
       width,
       height,
-      selection:              true,
+      selection:              window.innerWidth > 767,
       preserveObjectStacking: true,
       renderOnAddRemove:      true,
       enableRetinaScaling:    false,
