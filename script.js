@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════════════
-   Ink Sign Studio — script.js  (v12)
+   Ink Sign Studio — script.js  (v13)
    ─────────────────────────────────────────────────────────────────────
    §SPA  Tab-switching (Dashboard / Archive)
    §1    PIN screen  +  Forgot-PIN / Reset-App
@@ -17,7 +17,24 @@
          └─────────────────────────────────────────────────────────────┘
    §4    PDF load from bytes → pdf.js render
    §5    Fabric.js canvas  (single instance, never disposed)
-         allowTouchScrolling = true for mobile page scrolling
+   §5·5  Mobile scroll fix (manual touch-scroll handler)
+         ┌── Why this is needed ───────────────────────────────────────┐
+         │  Fabric 5.x registers all its pointer/touch listeners as    │
+         │  { passive: false } and calls e.preventDefault() on every   │
+         │  touch event it receives — even when allowTouchScrolling is  │
+         │  true. On iOS Safari, WebKit honours preventDefault() even  │
+         │  when the element's CSS declares touch-action: auto, so CSS  │
+         │  alone cannot rescue scroll. The PointerEvents code path     │
+         │  (which all modern mobile browsers use) also bypasses the    │
+         │  allowTouchScrolling guard entirely.                         │
+         │                                                             │
+         │  Solution: attach passive touchstart/touchmove/touchend     │
+         │  listeners directly to <main> (the overflow:auto scroll     │
+         │  container). Manually driving scrollLeft/scrollTop is not a  │
+         │  "browser default action" and is 100% immune to             │
+         │  preventDefault(). The listeners are passive so they never  │
+         │  delay touch response.                                       │
+         └─────────────────────────────────────────────────────────────┘
    §6    Image-based Stamps  (Ink Signature / Designation Seal / Office Seal)
          ┌── Image Processing & Storage Pipeline ──────────────────────┐
          │  ① Auto Background Removal  — white/light-grey → transparent│
@@ -334,6 +351,19 @@ document.addEventListener('DOMContentLoaded', () => {
   // rotation: 0 | 90 | 180 | 270  (degrees, clockwise)
   let orgPages = [];
   let dragSrcIdx = null;
+
+  /* ── §5·5 Mobile scroll — shared state flags ─────────────────────────
+     _fabricObjectActive: true while the user has an object selected and
+       is potentially dragging it. We must NOT scroll during this time —
+       Fabric owns the touch for the drag gesture.
+     _mobileScrollActive: true while a qualifying scroll gesture is in
+       progress (touch started outside drawing/stamp/text modes and with
+       no active Fabric object).
+     These are set by initFabricCanvas() event listeners and by
+     setDrawingMode(). initMobileScroll() reads them.
+  ────────────────────────────────────────────────────────────────────── */
+  let _fabricObjectActive = false;
+  let _mobileScrollActive = false;
 
 
   /* ════════════════════════════════════════════════════════════════════
@@ -756,6 +786,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       await renderPage(1);
       initFabricCanvas(pdfCanvas.width, pdfCanvas.height);
+      initMobileScroll();   // §5·5 — must run after initFabricCanvas
 
       showSigningScreen();
       updatePaginationUI();
@@ -801,9 +832,10 @@ document.addEventListener('DOMContentLoaded', () => {
      <canvas> element from the DOM, permanently breaking re-init.
      We avoid this by using setWidth/setHeight + clear() instead.
 
-     allowTouchScrolling = true  lets the browser handle vertical pan
-     gestures on mobile when the user is not actively drawing/stamping,
-     so the page remains scrollable by touch on the canvas area.
+     allowTouchScrolling = true  is kept for completeness but note that
+     on modern mobile browsers Fabric routes input through the Pointer
+     Events API, which bypasses the allowTouchScrolling guard entirely.
+     The real scroll fix is in §5·5 (initMobileScroll).
 
      selection = window.innerWidth > 767  disables the background drag-box
      on mobile (≤767 px). Fabric's group-selection gesture hijacks touch
@@ -825,32 +857,32 @@ document.addEventListener('DOMContentLoaded', () => {
       preserveObjectStacking: true,
       renderOnAddRemove: true,
       enableRetinaScaling: false,
-      allowTouchScrolling: true,   // Fabric: don't capture scroll-intent touches
+      allowTouchScrolling: true,
     });
 
-    // ── MOBILE SCROLL FIX: allow touch events to propagate for page scrolling
-    //    when the user is not in an active drawing/stamping interaction.
     fabricCanvas.allowTouchScrolling = true;
-
-    // ── TOUCH-ACTION CSS HANDOFF ──────────────────────────────────────────
-    // Fabric 5.x may apply touch-action:none inline during canvas init,
-    // before our CSS !important rules are evaluated. Strip any inline
-    // touch-action so the stylesheet takes full control:
-    //   • Normal mode  → CSS: .canvas-container / .upper-canvas   → pan-x pan-y
-    //   • Drawing mode → CSS: .drawing-active .upper-canvas       → none
-    // Using requestAnimationFrame ensures this runs after Fabric's own
-    // post-constructor event-listener setup (_initEventListeners).
-    requestAnimationFrame(() => {
-      [
-        fabricCanvas.upperCanvasEl,
-        fabricCanvas.lowerCanvasEl,
-        fabricCanvas.wrapperEl,
-      ].forEach(el => el && el.style.removeProperty('touch-action'));
-    });
 
     Object.assign(fabricCanvas.wrapperEl.style, {
       position: 'absolute', top: '0', left: '0',
       width: width + 'px', height: height + 'px',
+    });
+
+    /* ── §5·5 Object-active tracking ────────────────────────────────────
+       When the user taps/clicks a Fabric object we set _fabricObjectActive
+       so initMobileScroll() suppresses scroll during that interaction.
+       mouse:down fires before any selection event, so we check the active
+       object at that moment rather than waiting for selection:created.
+       We use mouse:up (not selection:cleared) to reset the flag so that
+       a scroll gesture begun after releasing an object is not blocked. */
+    fabricCanvas.on('mouse:down', () => {
+      if (fabricCanvas.getActiveObject()) {
+        _fabricObjectActive = true;
+      }
+    });
+    fabricCanvas.on('mouse:up', () => {
+      // Small delay so the flag stays true through the full Fabric
+      // mouse:up processing cycle before we allow scrolling again.
+      setTimeout(() => { _fabricObjectActive = false; }, 80);
     });
 
     /* ── FIX #4: Selection events — show delete button and expose
@@ -976,6 +1008,107 @@ document.addEventListener('DOMContentLoaded', () => {
     fabricCanvas.freeDrawingBrush.width = currentBrushSize;
     fabricCanvas.freeDrawingBrush.decimate = 0;
   }
+
+
+  /* ════════════════════════════════════════════════════════════════════
+     §5·5  MOBILE SCROLL FIX  —  manual touch-pan on the <main> container
+     ──────────────────────────────────────────────────────────────────
+     WHY this approach is necessary (the short version):
+
+     Fabric 5.x binds all its canvas listeners as { passive: false } and
+     calls e.preventDefault() on every pointer/touch event it handles.
+     On iOS Safari, WebKit honours preventDefault() even when the element
+     has CSS touch-action: auto, so CSS alone cannot unblock scroll on iOS.
+     Fabric's allowTouchScrolling flag only guards the TouchEvents code
+     path; modern mobile browsers route input through the PointerEvents
+     API instead, which never checks that flag.
+
+     The fix: attach { passive: true } listeners to <main> (the
+     overflow:auto scroll container). Because they are passive they fire
+     even when Fabric's non-passive listeners have called preventDefault().
+     Manually writing scrollLeft / scrollTop is not a "browser default
+     action" — it is a direct DOM mutation — so it is completely immune
+     to preventDefault(). The scroll is driven by our code, not the
+     browser's built-in scroll machinery.
+
+     Guard conditions — we must NOT scroll when:
+       • drawing mode is active (Fabric owns the touch for stroke rendering)
+       • stampingMode is active (touch places the stamp)
+       • textPlacingMode is active (touch places the text object)
+       • the user has tapped a Fabric object and may be dragging it
+         (_fabricObjectActive, set by the mouse:down listener above)
+
+     initMobileScroll() is idempotent — it bails if it has already run,
+     so calling it from loadPdfBytes() on every PDF load is safe.
+  ════════════════════════════════════════════════════════════════════ */
+  let _mobileScrollInited = false;
+
+  function initMobileScroll() {
+    if (_mobileScrollInited) return;
+    _mobileScrollInited = true;
+
+    // <main> is the overflow:auto scroll container that holds #pdf-wrapper.
+    const mainEl = pdfWrapper.closest('main');
+    if (!mainEl) return;
+
+    let _startX = 0;
+    let _startY = 0;
+    let _lastX  = 0;
+    let _lastY  = 0;
+
+    /* touchstart — decide whether this gesture should scroll.
+       Passive: true so we never delay the touch response. */
+    mainEl.addEventListener('touchstart', (e) => {
+      // Only single-finger pans scroll the canvas area.
+      // Two-finger gestures (pinch-zoom) are left entirely to the browser.
+      if (e.touches.length !== 1) {
+        _mobileScrollActive = false;
+        return;
+      }
+
+      // Suppress scroll when Fabric needs full touch ownership.
+      if (isDrawingMode || stampingMode || textPlacingMode || _fabricObjectActive) {
+        _mobileScrollActive = false;
+        return;
+      }
+
+      _mobileScrollActive = true;
+      _startX = _lastX = e.touches[0].clientX;
+      _startY = _lastY = e.touches[0].clientY;
+    }, { passive: true });
+
+    /* touchmove — drive the scroll container directly.
+       Passive: true — this fires even though Fabric's listener called
+       preventDefault(). We bypass the browser's default-action system
+       entirely by writing scrollLeft/scrollTop ourselves. */
+    mainEl.addEventListener('touchmove', (e) => {
+      if (!_mobileScrollActive || e.touches.length !== 1) return;
+
+      // Re-check mode flags mid-gesture: if the user switches to drawing
+      // mode while panning (unlikely but possible), stop scrolling.
+      if (isDrawingMode || stampingMode || textPlacingMode || _fabricObjectActive) {
+        _mobileScrollActive = false;
+        return;
+      }
+
+      const currentX = e.touches[0].clientX;
+      const currentY = e.touches[0].clientY;
+
+      const dx = _lastX - currentX;
+      const dy = _lastY - currentY;
+
+      mainEl.scrollLeft += dx;
+      mainEl.scrollTop  += dy;
+
+      _lastX = currentX;
+      _lastY = currentY;
+    }, { passive: true });
+
+    /* touchend / touchcancel — always reset the scroll flag. */
+    mainEl.addEventListener('touchend',    () => { _mobileScrollActive = false; }, { passive: true });
+    mainEl.addEventListener('touchcancel', () => { _mobileScrollActive = false; }, { passive: true });
+  }
+
 
   /* ── Show/hide colour toolbar based on what is selected ──────────── */
   function _syncColorToolbarToSelection() {
@@ -1348,53 +1481,62 @@ document.addEventListener('DOMContentLoaded', () => {
       cursor:pointer; border:1px solid ${color}55; flex-shrink:0;
     `;
     thumb.title = `Click to add ${label} to canvas`;
-    thumb.addEventListener('click', () => addStampToCanvas(savedUrl, color));
+    thumb.addEventListener('click', () => {
+      if (!fabricCanvas) { alert('ആദ്യം ഒരു PDF അപ്‌ലോഡ് ചെയ്യുക!'); return; }
+      addStampToCanvas(savedUrl, color);
+      _closeSidebar();
+    });
 
-    const lbl = document.createElement('span');
-    lbl.textContent = label;
-    lbl.style.cssText = `flex:1; font-size:11px; font-weight:600; color:${color}; line-height:1.3;`;
+    const info = document.createElement('div');
+    info.style.cssText = 'flex:1;min-width:0;';
+    info.innerHTML = `
+      <div style="font-size:10px;font-weight:700;color:${color};text-transform:uppercase;
+                  letter-spacing:.04em;margin-bottom:2px;">${label}</div>
+      <div style="font-size:9px;color:#6b7280;">Tap image to stamp · trash to clear</div>
+    `;
 
     const trashBtn = document.createElement('button');
-    trashBtn.title = `Clear saved ${label}`;
-    trashBtn.innerHTML = `<span class="material-symbols-outlined"
-      style="font-size:18px;vertical-align:middle;">delete</span>`;
+    trashBtn.title = `Remove saved ${label}`;
     trashBtn.style.cssText = `
-      background:none; border:none; cursor:pointer; color:#b91c1c;
-      padding:2px 4px; border-radius:6px; transition:background .15s;
+      background:none;border:none;cursor:pointer;color:#b91c1c;
+      padding:4px;border-radius:6px;display:flex;align-items:center;
+      transition:background .14s;flex-shrink:0;
     `;
-    trashBtn.addEventListener('mouseover', () => trashBtn.style.background = '#fee2e2');
-    trashBtn.addEventListener('mouseout', () => trashBtn.style.background = 'none');
+    trashBtn.innerHTML = '<span class="material-symbols-outlined" style="font-size:16px">delete</span>';
+    trashBtn.addEventListener('mouseenter', () => trashBtn.style.background = '#fee2e2');
+    trashBtn.addEventListener('mouseleave', () => trashBtn.style.background = 'none');
     trashBtn.addEventListener('click', () => {
-      if (!confirm(`"${label}" ഡിലീറ്റ് ചെയ്യണോ?`)) return;
+      if (!confirm(`Remove saved ${label}?`)) return;
       localStorage.removeItem(storageKey);
       buildSavedStampUI(btnId, label, color, storageKey);
     });
 
-    wrapper.append(thumb, lbl, trashBtn);
-
-    const btnLabelEl = sidebarBtn.querySelector('[data-stamp-label]');
-    if (btnLabelEl) btnLabelEl.textContent = `Re-upload ${label}`;
+    wrapper.append(thumb, info, trashBtn);
   }
 
-  /* ── Wire each stamp button ──────────────────────────────────────── */
+  // Build stamp UIs and wire upload pickers for all three stamp types
   STAMP_DEFS.forEach(({ btnId, label, color, storageKey }) => {
+    buildSavedStampUI(btnId, label, color, storageKey);
+
     const sidebarBtn = document.getElementById(btnId);
     if (!sidebarBtn) return;
 
     const imgPicker = document.createElement('input');
     imgPicker.type = 'file';
-    imgPicker.accept = 'image/png,image/jpeg,image/gif,image/webp,image/svg+xml';
+    imgPicker.accept = 'image/*';
     imgPicker.style.display = 'none';
     document.body.appendChild(imgPicker);
 
-    buildSavedStampUI(btnId, label, color, storageKey);
-
     sidebarBtn.addEventListener('click', () => {
-      const savedUrl = localStorage.getItem(storageKey);
-      if (savedUrl && fabricCanvas) { addStampToCanvas(savedUrl, color); return; }
-      if (!fabricCanvas && !savedUrl) { alert('ആദ്യം ഒരു PDF അപ്‌ലോഡ് ചെയ്യുക!'); return; }
-      imgPicker.value = '';
-      imgPicker.click();
+      const saved = localStorage.getItem(storageKey);
+      if (saved) {
+        if (!fabricCanvas) { alert('ആദ്യം ഒരു PDF അപ്‌ലോഡ് ചെയ്യുക!'); return; }
+        addStampToCanvas(saved, color);
+        _closeSidebar();
+      } else {
+        imgPicker.value = '';
+        imgPicker.click();
+      }
     });
 
     imgPicker.addEventListener('change', async () => {
@@ -1447,19 +1589,13 @@ document.addEventListener('DOMContentLoaded', () => {
     isDrawingMode = active;
     fabricCanvas.isDrawingMode = active;
 
-    // Belt-and-suspenders touch-action: CSS .drawing-active handles most cases,
-    // but some Fabric internal events re-apply inline styles; the explicit
-    // inline assignment here ensures the correct value wins immediately.
-    // drawing ON  → none     (Fabric captures every pointer event for stroke rendering)
-    // drawing OFF → remove   (CSS pan-x pan-y from stylesheet takes over)
-    [fabricCanvas.upperCanvasEl, fabricCanvas.wrapperEl].forEach(el => {
-      if (!el) return;
-      if (active) {
-        el.style.touchAction = 'none';
-      } else {
-        el.style.removeProperty('touch-action');
-      }
-    });
+    /* ── §5·5 scroll-guard: cancel any in-progress scroll gesture when
+       drawing mode is switched on, so a pan that began in scroll mode
+       does not continue as a drawing stroke. */
+    if (active) {
+      _mobileScrollActive = false;
+      _fabricObjectActive = false;
+    }
 
     if (active) {
       applyBrushSettings();
