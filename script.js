@@ -1539,29 +1539,348 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
 
-    imgPicker.addEventListener('change', async () => {
+    // §6·5 — open the Crop Modal instead of processing silently
+    imgPicker.addEventListener('change', () => {
       const file = imgPicker.files[0];
       if (!file) return;
-      sidebarBtn.disabled = true;
-      sidebarBtn.style.opacity = '0.6';
-      const origHTML = sidebarBtn.innerHTML;
-      sidebarBtn.innerHTML = `<span style="font-size:12px;">Processing…</span>`;
-      try {
-        const processedDataUrl = await processStampImage(file);
-        try { localStorage.setItem(storageKey, processedDataUrl); }
-        catch (se) { console.warn('localStorage quota exceeded:', se); }
-        buildSavedStampUI(btnId, label, color, storageKey);
-        if (fabricCanvas) addStampToCanvas(processedDataUrl, color);
-        else alert(`${label} saved! Proceed to Sign to stamp it.`);
-      } catch (err) {
-        console.error('Stamp processing error:', err);
-        alert(`"${label}" process ചെയ്യാൻ കഴിഞ്ഞില്ല: ${err.message}`);
-      } finally {
-        sidebarBtn.innerHTML = origHTML;
-        sidebarBtn.disabled = false;
-        sidebarBtn.style.opacity = '1';
-      }
+      openStampCropModal(file, { btnId, label, color, storageKey });
     });
+  });
+
+
+  /* ════════════════════════════════════════════════════════════════════
+     §6·5  STAMP CROP MODAL  —  Cropper.js + slider adjustments
+     ──────────────────────────────────────────────────────────────────
+     Flow:
+       openStampCropModal(file, stampDef)
+         → reads file via FileReader → sets src on #modal-crop-img
+         → reveals #stamp-crop-modal (.active class)
+         → initialises Cropper.js on #modal-crop-img
+
+       "Confirm Crop & Continue" (#modal-confirm-crop-btn)
+         → getCroppedCanvas() → stores croppedImg
+         → destroys Cropper instance
+         → runs modalProcessAndPreview() with default slider values
+         → switches to output section
+
+       Sliders (#modal-slider-t/v/s) → oninput → modalProcessAndPreview()
+         → applies threshold / vibrancy / smoothness
+         → compresses to JPEG <15 KB
+         → updates #modal-preview and #modal-size-info
+
+       "↩ Re-crop" (#modal-recrop-btn) → back to crop section, re-inits Cropper
+
+       "Save & Use Stamp" (#modal-save-btn)
+         → saves final dataUrl to localStorage
+         → calls buildSavedStampUI()
+         → calls addStampToCanvas() if fabricCanvas ready
+         → closes modal
+
+       "✕ Close" / Escape → closeStampCropModal() (no save)
+     ──────────────────────────────────────────────────────────────────
+     ⚠ RED LINE: This section is entirely self-contained.
+       It has NO contact with §5·5 (initMobileScroll), §5 (Fabric init),
+       §4 (PDF render), or the PDF/Fabric event listeners.
+  ════════════════════════════════════════════════════════════════════ */
+
+  /* ── Modal DOM refs ──────────────────────────────────────────────── */
+  const _scModal        = document.getElementById('stamp-crop-modal');
+  const _scModalTitle   = document.getElementById('modal-stamp-title');
+  const _scCloseBtn     = document.getElementById('modal-close-btn');
+  const _scCropSection  = document.getElementById('modal-crop-section');
+  const _scOutputSection= document.getElementById('modal-output-section');
+  const _scCropImg      = document.getElementById('modal-crop-img');
+  const _scConfirmCrop  = document.getElementById('modal-confirm-crop-btn');
+  const _scRecropBtn    = document.getElementById('modal-recrop-btn');
+  const _scPreview      = document.getElementById('modal-preview');
+  const _scSizeInfo     = document.getElementById('modal-size-info');
+  const _scSaveBtn      = document.getElementById('modal-save-btn');
+  const _scSliderT      = document.getElementById('modal-slider-t');
+  const _scSliderV      = document.getElementById('modal-slider-v');
+  const _scSliderS      = document.getElementById('modal-slider-s');
+  const _scValT         = document.getElementById('modal-val-t');
+  const _scValV         = document.getElementById('modal-val-v');
+  const _scValS         = document.getElementById('modal-val-s');
+
+  /* ── Modal state ─────────────────────────────────────────────────── */
+  let _scCropper        = null;   // active Cropper.js instance
+  let _scRawDataUrl     = null;   // original FileReader data URL (for re-crop)
+  let _scCroppedImg     = null;   // Image element after crop confirmed
+  let _scFinalDataUrl   = null;   // final processed data URL ready to save
+  let _scCurrentDef     = null;   // { btnId, label, color, storageKey }
+
+  /* ── Helper: base64 byte size ────────────────────────────────────── */
+  function _scBase64KB(dataUrl) {
+    let padding = 0;
+    if (dataUrl.endsWith('==')) padding = 2;
+    else if (dataUrl.endsWith('=')) padding = 1;
+    const base64Len = dataUrl.length - (dataUrl.indexOf(',') + 1);
+    return (base64Len * 0.75 - padding) / 1024;
+  }
+
+  /* ── Open the modal ──────────────────────────────────────────────── */
+  function openStampCropModal(file, stampDef) {
+    _scCurrentDef = stampDef;
+
+    // Update modal title to reflect which stamp type is being set
+    if (_scModalTitle) _scModalTitle.textContent = `Set ${stampDef.label}`;
+
+    // Reset to crop section
+    _scCropSection.style.display  = 'block';
+    _scOutputSection.style.display = 'none';
+
+    // Reset slider values to sensible defaults
+    _scSliderT.value = 160; _scValT.textContent = '160';
+    _scSliderV.value = 50;  _scValV.textContent = '50';
+    _scSliderS.value = 1;   _scValS.textContent = '1.0';
+
+    // Show modal
+    _scModal.classList.add('active');
+    document.body.classList.add('overflow-hidden');
+
+    // Read file → set on crop image → init Cropper.js
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      _scRawDataUrl = ev.target.result;
+      _initModalCropper(_scRawDataUrl);
+    };
+    reader.readAsDataURL(file);
+  }
+
+  /* ── Close the modal (no save) ───────────────────────────────────── */
+  function closeStampCropModal() {
+    _destroyModalCropper();
+    _scModal.classList.remove('active');
+    document.body.classList.remove('overflow-hidden');
+    _scRawDataUrl   = null;
+    _scCroppedImg   = null;
+    _scFinalDataUrl = null;
+    _scCurrentDef   = null;
+    // Reset img srcs so stale images don't flash on next open
+    _scCropImg.removeAttribute('src');
+    _scPreview.removeAttribute('src');
+  }
+
+  /* ── Initialise (or re-initialise) Cropper.js ───────────────────── */
+  function _initModalCropper(dataUrl) {
+    _destroyModalCropper();
+
+    // Cropper.js needs the img src set before init so it can read dimensions.
+    // If src already equals dataUrl, force a reload via removeAttribute first.
+    if (_scCropImg.src === dataUrl) {
+      _scCropImg.removeAttribute('src');
+    }
+
+    const startCropper = () => {
+      if (_scCropper) return; // guard against double-init
+      _scCropper = new Cropper(_scCropImg, {
+        viewMode: 1,
+        dragMode: 'move',
+        aspectRatio: NaN,
+        autoCropArea: 0.85,
+        restore: false,
+        guides: true,
+        center: true,
+        highlight: false,
+        cropBoxMovable: true,
+        cropBoxResizable: true,
+        toggleDragModeOnDblclick: false,
+        zoomable: false,
+        rotatable: false,
+        scalable: false,
+        responsive: true,
+        checkOrientation: true,
+      });
+    };
+
+    _scCropImg.onload = startCropper;
+    _scCropImg.src    = dataUrl;
+  }
+
+  /* ── Destroy Cropper.js if it exists ────────────────────────────── */
+  function _destroyModalCropper() {
+    if (_scCropper) {
+      _scCropper.destroy();
+      _scCropper = null;
+    }
+  }
+
+  /* ── Core image processing — mirrors crop.html's processImage() ──── */
+  function _scProcessImage(imgEl, threshold, vibrancy, smoothness) {
+    const MAX_WIDTH = 500;
+    let w = imgEl.naturalWidth  || imgEl.width;
+    let h = imgEl.naturalHeight || imgEl.height;
+    if (w > MAX_WIDTH) { h = Math.round(h * MAX_WIDTH / w); w = MAX_WIDTH; }
+
+    // Draw source with optional blur for smoothness
+    const canvas = document.createElement('canvas');
+    canvas.width = w; canvas.height = h;
+    const ctx = canvas.getContext('2d');
+    ctx.filter = smoothness > 0 ? `blur(${smoothness}px)` : 'none';
+    ctx.drawImage(imgEl, 0, 0, w, h);
+    ctx.filter = 'none';
+
+    const imgData = ctx.getImageData(0, 0, w, h);
+    const data    = imgData.data;
+
+    // Composite canvas (white background)
+    const outCanvas = document.createElement('canvas');
+    outCanvas.width  = w; outCanvas.height = h;
+    const outCtx = outCanvas.getContext('2d');
+    outCtx.fillStyle = '#ffffff';
+    outCtx.fillRect(0, 0, w, h);
+
+    const vibFactor = vibrancy / 100 + 1;
+
+    for (let i = 0; i < data.length; i += 4) {
+      const r = data[i], g = data[i + 1], b = data[i + 2];
+      const brightness = 0.299 * r + 0.587 * g + 0.114 * b;
+
+      if (brightness > threshold) {
+        // Background → transparent
+        data[i + 3] = 0;
+      } else if (vibrancy > 0) {
+        // Foreground → boost vibrancy
+        const avg = (r + g + b) / 3;
+        data[i]     = Math.min(255, Math.max(0, avg + vibFactor * (r - avg)));
+        data[i + 1] = Math.min(255, Math.max(0, avg + vibFactor * (g - avg)));
+        data[i + 2] = Math.min(255, Math.max(0, avg + vibFactor * (b - avg)));
+      }
+    }
+
+    ctx.putImageData(imgData, 0, 0);
+    outCtx.drawImage(canvas, 0, 0);
+
+    // Compress to <15 KB JPEG
+    let quality = 0.90;
+    let dataUrl  = outCanvas.toDataURL('image/jpeg', quality);
+    let sizeKB   = _scBase64KB(dataUrl);
+
+    while (sizeKB > 15 && quality > 0.05) {
+      quality  -= 0.05;
+      dataUrl   = outCanvas.toDataURL('image/jpeg', quality);
+      sizeKB    = _scBase64KB(dataUrl);
+    }
+
+    return { dataUrl, sizeKB };
+  }
+
+  /* ── Process & update the preview panel ─────────────────────────── */
+  function _scUpdatePreview() {
+    if (!_scCroppedImg) return;
+
+    const threshold  = parseInt(_scSliderT.value, 10);
+    const vibrancy   = parseInt(_scSliderV.value, 10);
+    const smoothness = parseFloat(_scSliderS.value);
+
+    const { dataUrl, sizeKB } = _scProcessImage(_scCroppedImg, threshold, vibrancy, smoothness);
+    _scFinalDataUrl = dataUrl;
+
+    _scPreview.src = dataUrl;
+
+    if (_scSizeInfo) {
+      _scSizeInfo.textContent = `Size: ${sizeKB.toFixed(2)} KB`;
+      _scSizeInfo.style.color = sizeKB <= 15 ? '#15803d' : '#b91c1c';
+    }
+  }
+
+  /* ── "Confirm Crop & Continue" ───────────────────────────────────── */
+  _scConfirmCrop.addEventListener('click', () => {
+    if (!_scCropper) return;
+
+    const croppedCanvas = _scCropper.getCroppedCanvas({
+      imageSmoothingEnabled: true,
+      imageSmoothingQuality: 'high',
+    });
+
+    if (!croppedCanvas) {
+      alert('Crop failed — please try again.');
+      return;
+    }
+
+    const croppedImg  = new Image();
+    croppedImg.onload = () => {
+      _scCroppedImg = croppedImg;
+
+      // Destroy Cropper instance to free memory
+      _destroyModalCropper();
+
+      // Switch sections
+      _scCropSection.style.display   = 'none';
+      _scOutputSection.style.display = 'block';
+
+      // Run initial preview with default slider values
+      _scUpdatePreview();
+    };
+    croppedImg.src = croppedCanvas.toDataURL('image/png');
+  });
+
+  /* ── "↩ Re-crop" ─────────────────────────────────────────────────── */
+  _scRecropBtn.addEventListener('click', () => {
+    _scOutputSection.style.display = 'none';
+    _scCropSection.style.display   = 'block';
+
+    // Reset sliders
+    _scSliderT.value = 160; _scValT.textContent = '160';
+    _scSliderV.value = 50;  _scValV.textContent = '50';
+    _scSliderS.value = 1;   _scValS.textContent = '1.0';
+
+    // Re-init Cropper with the original raw image
+    _initModalCropper(_scRawDataUrl);
+  });
+
+  /* ── Slider live-update wiring ───────────────────────────────────── */
+  _scSliderT.addEventListener('input', () => {
+    _scValT.textContent = _scSliderT.value;
+    _scUpdatePreview();
+  });
+  _scSliderV.addEventListener('input', () => {
+    _scValV.textContent = _scSliderV.value;
+    _scUpdatePreview();
+  });
+  _scSliderS.addEventListener('input', () => {
+    _scValS.textContent = parseFloat(_scSliderS.value).toFixed(1);
+    _scUpdatePreview();
+  });
+
+  /* ── "Save & Use Stamp" ──────────────────────────────────────────── */
+  _scSaveBtn.addEventListener('click', () => {
+    if (!_scFinalDataUrl || !_scCurrentDef) return;
+
+    const { btnId, label, color, storageKey } = _scCurrentDef;
+
+    try {
+      localStorage.setItem(storageKey, _scFinalDataUrl);
+    } catch (se) {
+      console.warn('[StampModal] localStorage quota exceeded:', se);
+      alert('Storage full — image could not be saved persistently.');
+    }
+
+    buildSavedStampUI(btnId, label, color, storageKey);
+
+    if (fabricCanvas) {
+      addStampToCanvas(_scFinalDataUrl, color);
+    } else {
+      alert(`${label} saved! Proceed to Sign to stamp it on the PDF.`);
+    }
+
+    _closeSidebar();
+    closeStampCropModal();
+  });
+
+  /* ── Close button & backdrop click ──────────────────────────────── */
+  _scCloseBtn.addEventListener('click', closeStampCropModal);
+
+  _scModal.addEventListener('click', (e) => {
+    // Close when clicking the semi-transparent backdrop (not the card itself)
+    if (e.target === _scModal) closeStampCropModal();
+  });
+
+  /* ── Escape key closes the modal ────────────────────────────────── */
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && _scModal.classList.contains('active')) {
+      closeStampCropModal();
+    }
   });
 
 
