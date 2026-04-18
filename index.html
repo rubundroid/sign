@@ -814,7 +814,9 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        transition: background 0.15s, color 0.15s;
+        transition:
+          background 0.15s,
+          color 0.15s;
         flex-shrink: 0;
       }
 
@@ -1781,32 +1783,51 @@
      compressed to <15 KB and saved to localStorage.
      script.js toggles the .active class to show / hide the modal.
 ════════════════════════════════════════════════════════════════ -->
-    <div id="stamp-crop-modal" role="dialog" aria-modal="true" aria-labelledby="modal-stamp-title">
+    <div
+      id="stamp-crop-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="modal-stamp-title"
+    >
       <div class="scm-card">
-
         <!-- ── Header ─────────────────────────────────────────────── -->
         <div class="scm-header">
           <div class="scm-title-wrap">
             <div class="scm-icon">
-              <span class="material-symbols-outlined" style="font-size:18px;font-variation-settings:'FILL' 1">crop_free</span>
+              <span
+                class="material-symbols-outlined"
+                style="
+                  font-size: 18px;
+                  font-variation-settings: &quot;FILL&quot; 1;
+                "
+                >crop_free</span
+              >
             </div>
             <div>
               <p class="scm-title" id="modal-stamp-title">Set Ink Signature</p>
               <p class="scm-subtitle">Crop &amp; Optimise Image</p>
             </div>
           </div>
-          <button class="scm-close" id="modal-close-btn" title="Close (Esc)" aria-label="Close modal">
-            <span class="material-symbols-outlined" style="font-size:18px">close</span>
+          <button
+            class="scm-close"
+            id="modal-close-btn"
+            title="Close (Esc)"
+            aria-label="Close modal"
+          >
+            <span class="material-symbols-outlined" style="font-size: 18px"
+              >close</span
+            >
           </button>
         </div>
 
         <!-- ── Scrollable Body ────────────────────────────────────── -->
         <div class="scm-body">
-
           <!-- ① CROP SECTION — visible first -->
           <div id="modal-crop-section">
             <div class="scm-step-badge">
-              <span class="material-symbols-outlined" style="font-size:13px">crop</span>
+              <span class="material-symbols-outlined" style="font-size: 13px"
+                >crop</span
+              >
               Step 1 — Select Region
             </div>
 
@@ -1816,21 +1837,32 @@
             </div>
 
             <p class="scm-crop-hint">
-              <span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;color:#005bbf">touch_app</span>
+              <span
+                class="material-symbols-outlined"
+                style="font-size: 14px; vertical-align: middle; color: #005bbf"
+                >touch_app</span
+              >
               Drag the box to select the area · resize from corners or edges
             </p>
 
             <button class="scm-btn scm-btn-crop" id="modal-confirm-crop-btn">
-              <span class="material-symbols-outlined" style="font-size:16px">content_cut</span>
+              <span class="material-symbols-outlined" style="font-size: 16px"
+                >content_cut</span
+              >
               Confirm Crop &amp; Continue
             </button>
           </div>
           <!-- /modal-crop-section -->
 
           <!-- ② OUTPUT SECTION — visible after crop confirmed -->
-          <div id="modal-output-section" style="display:none;">
-            <div class="scm-step-badge" style="background:#f0fdf4;color:#15803d;">
-              <span class="material-symbols-outlined" style="font-size:13px">tune</span>
+          <div id="modal-output-section" style="display: none">
+            <div
+              class="scm-step-badge"
+              style="background: #f0fdf4; color: #15803d"
+            >
+              <span class="material-symbols-outlined" style="font-size: 13px"
+                >tune</span
+              >
               Step 2 — Adjust &amp; Save
             </div>
 
@@ -1858,7 +1890,13 @@
                   Background Removal (Threshold)
                   <span class="scm-val" id="modal-val-t">160</span>
                 </label>
-                <input type="range" id="modal-slider-t" min="50" max="230" value="160" />
+                <input
+                  type="range"
+                  id="modal-slider-t"
+                  min="50"
+                  max="230"
+                  value="160"
+                />
               </div>
 
               <div class="scm-control-group">
@@ -1866,7 +1904,13 @@
                   Color Vibrancy
                   <span class="scm-val" id="modal-val-v">50</span>
                 </label>
-                <input type="range" id="modal-slider-v" min="0" max="150" value="50" />
+                <input
+                  type="range"
+                  id="modal-slider-v"
+                  min="0"
+                  max="150"
+                  value="50"
+                />
               </div>
 
               <div class="scm-control-group">
@@ -1874,18 +1918,26 @@
                   Edge Smoothness
                   <span class="scm-val" id="modal-val-s">1.0</span>
                 </label>
-                <input type="range" id="modal-slider-s" min="0" max="10" value="1" step="0.1" />
+                <input
+                  type="range"
+                  id="modal-slider-s"
+                  min="0"
+                  max="10"
+                  value="1"
+                  step="0.1"
+                />
               </div>
             </div>
 
             <!-- Save button -->
             <button class="scm-btn scm-btn-save" id="modal-save-btn">
-              <span class="material-symbols-outlined" style="font-size:16px">save</span>
+              <span class="material-symbols-outlined" style="font-size: 16px"
+                >save</span
+              >
               Save &amp; Use Stamp
             </button>
           </div>
           <!-- /modal-output-section -->
-
         </div>
         <!-- /scm-body -->
       </div>
@@ -2049,7 +2101,7 @@
         class="absolute bottom-10 left-1/2 -translate-x-1/2 text-center pointer-events-none opacity-[0.035]"
       >
         <p
-          class="font-headline font-extrabold text-5xl text-on-background uppercase tracking-[2em] translate-x-[1em]"
+          class="font-headline font-extrabold text-3xl md:text-5xl text-on-background uppercase tracking-[1em] md:tracking-[2em] translate-x-[0.5em] md:translate-x-[1em]"
         >
           ENCRYPTED
         </p>
