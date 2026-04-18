@@ -10,29 +10,34 @@
        These populate the WhatsApp / Facebook / Telegram / LinkedIn
        link-preview card when the URL is shared.
   ════════════════════════════════════════════════════════════════ -->
-    <meta property="og:type" content="website" />
+        <meta property="og:type" content="website" />
     <meta property="og:title" content="Ink Sign Studio — Secure PDF Signer" />
     <meta
       property="og:description"
       content="Upload, organise and digitally stamp PDFs with your Ink Signature, Designation Seal or Office Seal — entirely in the browser. PIN-protected and offline-capable."
     />
-    <meta property="og:image" content="logo192.png" />
-    <meta property="og:image:width" content="192" />
-    <meta property="og:image:height" content="192" />
+    <meta property="og:image" content="https://sign.rubundroid.com/logo512.png" />
+    <meta property="og:image:width" content="512" />
+    <meta property="og:image:height" content="512" />
     <meta property="og:site_name" content="Ink Sign Studio" />
-    <!-- Twitter / X card (also used by WhatsApp as a fallback) -->
-    <meta name="twitter:card" content="summary" />
+    
+    <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="Ink Sign Studio — Secure PDF Signer" />
     <meta
       name="twitter:description"
       content="Browser-based PDF signing with Ink Signature, Designation Seal &amp; Office Seal. No server uploads. PIN-protected."
     />
-    <meta name="twitter:image" content="logo192.png" />
-    <!-- Standard SEO description -->
+    <meta name="twitter:image" content="https://sign.rubundroid.com/logo512.png" />
+    
     <meta
       name="description"
       content="Ink Sign Studio — upload, merge and stamp PDFs securely in your browser with Ink Signatures and official seals."
     />
+
+    <link rel="manifest" href="manifest.json" />
+    <meta name="theme-color" content="#ffffff" />
+    <link rel="apple-touch-icon" href="logo192.png" />
+
 
     <link
       href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap"
@@ -2154,5 +2159,15 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
     <script src="script.js"></script>
+     <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('sw.js')
+            .then(reg => console.log('Service Worker registered successfully.', reg))
+            .catch(err => console.error('Service Worker registration failed:', err));
+        });
+      }
+     </script>
+    
   </body>
 </html>
