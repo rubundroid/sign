@@ -47,6 +47,10 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
     <link rel="stylesheet" href="style.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css"
+    />
 
     <style>
       /* ── Base ──────────────────────────────────────────────── */
@@ -703,6 +707,325 @@
           -webkit-backdrop-filter: blur(2px);
           transition: opacity 0.25s ease;
         }
+      }
+
+      /* ══════════════════════════════════════════════════════════
+         STAMP CROP MODAL
+         Opened by script.js §6 when user picks a new stamp image.
+         Layered above app content (z:500) but below the global
+         loading overlay (z:9999) and PIN screen (z:50 — modal only
+         opens after PIN is cleared anyway).
+      ══════════════════════════════════════════════════════════ */
+      #stamp-crop-modal {
+        position: fixed;
+        inset: 0;
+        z-index: 500;
+        display: none; /* script.js toggles to flex */
+        align-items: center;
+        justify-content: center;
+        background: rgba(15, 23, 42, 0.62);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        padding: 16px;
+        overflow-y: auto;
+      }
+
+      #stamp-crop-modal.active {
+        display: flex;
+      }
+
+      #stamp-crop-modal .scm-card {
+        background: #ffffff;
+        border-radius: 24px;
+        box-shadow:
+          0 32px 80px rgba(15, 23, 42, 0.22),
+          0 0 0 1px rgba(255, 255, 255, 0.6);
+        width: 100%;
+        max-width: 540px;
+        overflow: hidden;
+        font-family: "Inter", sans-serif;
+        /* Prevent card from growing taller than the viewport */
+        max-height: calc(100dvh - 32px);
+        display: flex;
+        flex-direction: column;
+      }
+
+      /* ── Modal Header ─────────────────────────────────────── */
+      #stamp-crop-modal .scm-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 20px 24px 16px;
+        border-bottom: 1px solid rgba(193, 198, 214, 0.3);
+        background: linear-gradient(
+          135deg,
+          rgba(0, 91, 191, 0.04) 0%,
+          rgba(255, 255, 255, 0) 100%
+        );
+        flex-shrink: 0;
+      }
+
+      #stamp-crop-modal .scm-title-wrap {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      #stamp-crop-modal .scm-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        background: linear-gradient(180deg, #005bbf 0%, #1a73e8 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        flex-shrink: 0;
+      }
+
+      #stamp-crop-modal .scm-title {
+        font-family: "Manrope", sans-serif;
+        font-size: 15px;
+        font-weight: 800;
+        color: #191c1e;
+        margin: 0;
+        line-height: 1.2;
+      }
+
+      #stamp-crop-modal .scm-subtitle {
+        font-size: 10px;
+        color: #6b7280;
+        font-weight: 600;
+        margin: 2px 0 0;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+
+      #stamp-crop-modal .scm-close {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        border: none;
+        background: #f3f4f6;
+        color: #6b7280;
+        cursor: pointer;
+        font-size: 18px;
+        line-height: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.15s, color 0.15s;
+        flex-shrink: 0;
+      }
+
+      #stamp-crop-modal .scm-close:hover {
+        background: #fee2e2;
+        color: #b91c1c;
+      }
+
+      /* ── Modal Body (scrollable) ──────────────────────────── */
+      #stamp-crop-modal .scm-body {
+        padding: 20px 24px 24px;
+        overflow-y: auto;
+        flex: 1;
+      }
+
+      /* Step badge */
+      #stamp-crop-modal .scm-step-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: #eff6ff;
+        color: #005bbf;
+        border-radius: 100px;
+        padding: 4px 10px;
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        margin-bottom: 12px;
+      }
+
+      /* ── Crop wrapper ──────────────────────────────────────── */
+      #stamp-crop-modal .scm-crop-wrapper {
+        border-radius: 10px;
+        overflow: hidden;
+        border: 1px solid rgba(193, 198, 214, 0.5);
+        background: #1e1e2e;
+        /* Max height so the card never overflows on mobile */
+        max-height: 300px;
+      }
+
+      #stamp-crop-modal #modal-crop-img {
+        display: block;
+        max-width: 100%;
+      }
+
+      #stamp-crop-modal .scm-crop-hint {
+        font-size: 11px;
+        color: #6b7280;
+        margin: 8px 0 14px;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+
+      /* ── Buttons ──────────────────────────────────────────── */
+      #stamp-crop-modal .scm-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+        padding: 11px 22px;
+        border-radius: 12px;
+        border: none;
+        font-family: "Manrope", sans-serif;
+        font-size: 13px;
+        font-weight: 700;
+        cursor: pointer;
+        transition:
+          opacity 0.18s,
+          transform 0.12s,
+          background 0.18s;
+      }
+
+      #stamp-crop-modal .scm-btn:active {
+        transform: scale(0.97);
+      }
+
+      #stamp-crop-modal .scm-btn-primary {
+        background: linear-gradient(180deg, #005bbf 0%, #1a73e8 100%);
+        color: #fff;
+        box-shadow: 0 4px 14px rgba(0, 91, 191, 0.28);
+        width: 100%;
+        margin-top: 4px;
+      }
+
+      #stamp-crop-modal .scm-btn-primary:hover {
+        opacity: 0.92;
+      }
+
+      #stamp-crop-modal .scm-btn-crop {
+        background: #005bbf;
+        color: #fff;
+        box-shadow: 0 4px 12px rgba(0, 91, 191, 0.25);
+        width: 100%;
+        margin-top: 8px;
+      }
+
+      #stamp-crop-modal .scm-btn-crop:hover {
+        background: #0050a8;
+      }
+
+      #stamp-crop-modal .scm-btn-save {
+        background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+        color: #fff;
+        box-shadow: 0 4px 14px rgba(22, 163, 74, 0.3);
+        width: 100%;
+        margin-top: 14px;
+      }
+
+      #stamp-crop-modal .scm-btn-save:hover {
+        opacity: 0.92;
+      }
+
+      /* ── Preview image ────────────────────────────────────── */
+      #stamp-crop-modal .scm-preview-wrap {
+        border-radius: 10px;
+        border: 1px dashed rgba(193, 198, 214, 0.6);
+        background: repeating-conic-gradient(#e5e7eb 0% 25%, #fff 0% 50%) 0 0 /
+          16px 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        min-height: 100px;
+        max-height: 160px;
+      }
+
+      #stamp-crop-modal #modal-preview {
+        max-width: 100%;
+        max-height: 158px;
+        object-fit: contain;
+      }
+
+      /* ── Size info + recrop link ─────────────────────────── */
+      #stamp-crop-modal .scm-meta-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin: 10px 0 14px;
+      }
+
+      #stamp-crop-modal #modal-size-info {
+        font-size: 11px;
+        font-weight: 700;
+        color: #15803d;
+      }
+
+      #stamp-crop-modal .scm-recrop {
+        font-size: 11px;
+        color: #005bbf;
+        cursor: pointer;
+        text-decoration: underline;
+        font-weight: 600;
+        background: none;
+        border: none;
+        padding: 0;
+      }
+
+      #stamp-crop-modal .scm-recrop:hover {
+        color: #0040a0;
+      }
+
+      /* ── Sliders ──────────────────────────────────────────── */
+      #stamp-crop-modal .scm-controls {
+        background: #f8fafc;
+        border: 1px solid rgba(193, 198, 214, 0.35);
+        border-radius: 12px;
+        padding: 14px 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      #stamp-crop-modal .scm-controls-title {
+        font-size: 10px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: #6b7280;
+        margin-bottom: 2px;
+      }
+
+      #stamp-crop-modal .scm-control-group label {
+        display: flex;
+        justify-content: space-between;
+        font-size: 11px;
+        font-weight: 600;
+        color: #374151;
+        margin-bottom: 5px;
+      }
+
+      #stamp-crop-modal .scm-control-group label .scm-val {
+        color: #005bbf;
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
+      }
+
+      #stamp-crop-modal .scm-control-group input[type="range"] {
+        width: 100%;
+        cursor: pointer;
+        accent-color: #005bbf;
+        height: 4px;
+        border-radius: 4px;
+      }
+
+      /* ── Divider ──────────────────────────────────────────── */
+      #stamp-crop-modal .scm-divider {
+        height: 1px;
+        background: rgba(193, 198, 214, 0.3);
+        margin: 14px 0;
       }
     </style>
   </head>
@@ -1450,6 +1773,126 @@
     </div>
     <!-- /app-dashboard -->
 
+    <!-- ════════════════════════════════════════════════════════════════
+     STAMP CROP MODAL
+     Opened by script.js §6 when a stamp image is uploaded.
+     Provides an interactive Cropper.js region + three adjustment sliders
+     (Threshold / Vibrancy / Smoothness) before the image is processed,
+     compressed to <15 KB and saved to localStorage.
+     script.js toggles the .active class to show / hide the modal.
+════════════════════════════════════════════════════════════════ -->
+    <div id="stamp-crop-modal" role="dialog" aria-modal="true" aria-labelledby="modal-stamp-title">
+      <div class="scm-card">
+
+        <!-- ── Header ─────────────────────────────────────────────── -->
+        <div class="scm-header">
+          <div class="scm-title-wrap">
+            <div class="scm-icon">
+              <span class="material-symbols-outlined" style="font-size:18px;font-variation-settings:'FILL' 1">crop_free</span>
+            </div>
+            <div>
+              <p class="scm-title" id="modal-stamp-title">Set Ink Signature</p>
+              <p class="scm-subtitle">Crop &amp; Optimise Image</p>
+            </div>
+          </div>
+          <button class="scm-close" id="modal-close-btn" title="Close (Esc)" aria-label="Close modal">
+            <span class="material-symbols-outlined" style="font-size:18px">close</span>
+          </button>
+        </div>
+
+        <!-- ── Scrollable Body ────────────────────────────────────── -->
+        <div class="scm-body">
+
+          <!-- ① CROP SECTION — visible first -->
+          <div id="modal-crop-section">
+            <div class="scm-step-badge">
+              <span class="material-symbols-outlined" style="font-size:13px">crop</span>
+              Step 1 — Select Region
+            </div>
+
+            <!-- Cropper.js mounts inside this wrapper -->
+            <div class="scm-crop-wrapper">
+              <img id="modal-crop-img" src="" alt="Image to crop" />
+            </div>
+
+            <p class="scm-crop-hint">
+              <span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;color:#005bbf">touch_app</span>
+              Drag the box to select the area · resize from corners or edges
+            </p>
+
+            <button class="scm-btn scm-btn-crop" id="modal-confirm-crop-btn">
+              <span class="material-symbols-outlined" style="font-size:16px">content_cut</span>
+              Confirm Crop &amp; Continue
+            </button>
+          </div>
+          <!-- /modal-crop-section -->
+
+          <!-- ② OUTPUT SECTION — visible after crop confirmed -->
+          <div id="modal-output-section" style="display:none;">
+            <div class="scm-step-badge" style="background:#f0fdf4;color:#15803d;">
+              <span class="material-symbols-outlined" style="font-size:13px">tune</span>
+              Step 2 — Adjust &amp; Save
+            </div>
+
+            <!-- Live processed preview -->
+            <div class="scm-preview-wrap">
+              <img id="modal-preview" src="" alt="Processed stamp preview" />
+            </div>
+
+            <!-- Size info + re-crop link -->
+            <div class="scm-meta-row">
+              <span id="modal-size-info">Size: calculating…</span>
+              <button class="scm-recrop" id="modal-recrop-btn">
+                ↩ Re-crop image
+              </button>
+            </div>
+
+            <div class="scm-divider"></div>
+
+            <!-- Adjustment sliders -->
+            <div class="scm-controls">
+              <p class="scm-controls-title">Image Adjustments</p>
+
+              <div class="scm-control-group">
+                <label>
+                  Background Removal (Threshold)
+                  <span class="scm-val" id="modal-val-t">160</span>
+                </label>
+                <input type="range" id="modal-slider-t" min="50" max="230" value="160" />
+              </div>
+
+              <div class="scm-control-group">
+                <label>
+                  Color Vibrancy
+                  <span class="scm-val" id="modal-val-v">50</span>
+                </label>
+                <input type="range" id="modal-slider-v" min="0" max="150" value="50" />
+              </div>
+
+              <div class="scm-control-group">
+                <label>
+                  Edge Smoothness
+                  <span class="scm-val" id="modal-val-s">1.0</span>
+                </label>
+                <input type="range" id="modal-slider-s" min="0" max="10" value="1" step="0.1" />
+              </div>
+            </div>
+
+            <!-- Save button -->
+            <button class="scm-btn scm-btn-save" id="modal-save-btn">
+              <span class="material-symbols-outlined" style="font-size:16px">save</span>
+              Save &amp; Use Stamp
+            </button>
+          </div>
+          <!-- /modal-output-section -->
+
+        </div>
+        <!-- /scm-body -->
+      </div>
+      <!-- /scm-card -->
+    </div>
+    <!-- /stamp-crop-modal -->
+
     <!-- ════════════════════════════════════════════════════════════
      PIN SCREEN
      #pin-input white background + clear border are
@@ -1657,6 +2100,7 @@
       })();
     </script>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
     <script src="script.js"></script>
   </body>
 </html>
