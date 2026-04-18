@@ -1,0 +1,25 @@
+{
+  "name": "Ink Sign Studio",
+  "short_name": "Sign Studio",
+  "description": "Securely digitally stamp and organise PDFs directly in your browser. Offline-capable and PIN-protected.",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#005bbf",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "logo192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "logo512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
+
